@@ -20,8 +20,16 @@ update_archlinux() {
 	sudo pacman -Syyu --noconfirm
 
 	# Update firmware
+	sudo pacman -S --needed --noconfirm fwupd
 	sudo fwupdmgr get-devices && sudo fwupdmgr refresh --force
 	sudo fwupdmgr get-updates && sudo fwupdmgr update -y
+
+}
+
+update_ungoogled_chromium() {
+
+	# Update ungoogled-chromium
+	sudo pacman -S --needed --noconfirm chaotic-aur/ungoogled-chromium-bin
 
 }
 
@@ -30,6 +38,12 @@ update_gnome() {
 	# Change icons
 	sudo pacman -S --needed --noconfirm papirus-icon-theme
 	gsettings set org.gnome.desktop.interface icon-theme "Papirus-Dark"
+
+	# Change favorites
+	gsettings set org.gnome.shell favorite-apps "[ \
+		'org.gnome.Nautilus.desktop', \
+		'org.gnome.Console.desktop' \
+	]"
 
 }
 
@@ -61,6 +75,7 @@ main() {
 	# Handle functions
 	factors=(
 		"update_archlinux"
+		"update_ungoogled_chromium"
 		"update_gnome"
 	)
 
