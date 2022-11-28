@@ -48,6 +48,9 @@ update_gnome() {
 
 update_jdownloader() {
 
+	# Update jre-jbr-xdg
+	yay -S --needed --noconfirm jre-jbr-xdg
+
 	# Update jdownloader
 	yay -S --needed --noconfirm jdownloader2
 
@@ -89,8 +92,8 @@ main() {
 	factors=(
 		"update_archlinux"
 		"update_jdownloader"
-		"update_ungoogled_chromium"
-		"update_gnome"
+		# "update_ungoogled_chromium"
+		# "update_gnome"
 	)
 
 	# Output progress
