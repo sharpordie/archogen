@@ -10,9 +10,11 @@ update_archlinux() {
 	mirrors="https://cdn-mirror.chaotic.cx/chaotic-aur/chaotic-mirrorlist.pkg.tar.zst"
 	sudo pacman -U --noconfirm "$keyring" "$mirrors"
 	configs="/etc/pacman.conf"
-	[[ -z $(tail -1 "$configs") ]] || echo "" | sudo tee -a "$configs"
-	echo "[chaotic-aur]" | sudo tee -a "$configs"
-	echo "Include = /etc/pacman.d/chaotic-mirrorlist" | sudo tee -a "$configs"
+	if ! grep -q "chaotic-aur" "$configs" 2>/dev/null; then
+		[[ -z $(tail -1 "$configs") ]] || echo "" | sudo tee -a "$configs"
+		echo "[chaotic-aur]" | sudo tee -a "$configs"
+		echo "Include = /etc/pacman.d/chaotic-mirrorlist" | sudo tee -a "$configs"
+	fi
 
 	# Update system
 	sudo pacman -Syyu --noconfirm
@@ -26,7 +28,7 @@ update_archlinux() {
 update_gnome() {
 
 	# Change icons
-	sudo pacman -S --noconfirm papirus-icon-theme
+	sudo pacman -S --needed --noconfirm papirus-icon-theme
 	gsettings set org.gnome.desktop.interface icon-theme "Papirus-Dark"
 
 }
