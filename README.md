@@ -4,7 +4,7 @@ Opiniated post-installation script for Arch Linux.
 
 ## <samp>SUPPORT</samp>
 
-<a href=""><img src="https://fakeimg.pl/260x80/000/fff/?text=‏‏‎ ‎" width="32%"></a>
+<a href=""><img src="https://fakeimg.pl/260x80/000/fff/?text=‏‏‎ ‎" width="260"></a>
 
 ## <samp>STARTER</samp>
 

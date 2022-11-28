@@ -48,11 +48,30 @@ update_gnome() {
 
 update_jdownloader() {
 
-	# Update jre-jbr-xdg
-	yay -S --needed --noconfirm jre-jbr-xdg
+	# Update jdk17-jetbrains-bin
+	# yay -S --needed --noconfirm jdk17-jetbrains-bin
+	# sudo archlinux-java set jdk17-jetbrains-bin
 
 	# Update jdownloader
 	yay -S --needed --noconfirm jdownloader2
+
+	# Change fonts
+	# configs="$HOME/.profile"
+	# if ! grep -q "_JAVA_OPTIONS" "$configs" 2>/dev/null; then
+	# 	[[ -s "$configs" ]] || touch "$configs"
+	# 	[[ -z $(tail -1 "$configs") ]] || echo "" >>"$configs"
+	# 	echo "_JAVA_OPTIONS='-Dawt.useSystemAAFontSettings=on'" >>"$configs"
+	# fi
+
+	# Change fonts
+	configs="/etc/environment"
+	if ! grep -q "_JAVA_OPTIONS" "$configs" 2>/dev/null; then
+		[[ -z $(tail -1 "$configs") ]] || echo "" | sudo tee -a "$configs"
+		echo "_JAVA_OPTIONS='-Dawt.useSystemAAFontSettings=on'" | sudo tee -a "$configs"
+	fi
+
+	# Change desktop
+	desktop="/usr/share/applications/jdownloader.desktop"
 
 }
 
