@@ -1,20 +1,20 @@
 update_archlinux() {
 
 	# Change the hostname.
-	hostnamectl hostname monolith
+	hostnamectl hostname archlinux
 
 	# Update chaotic-aur
-	sudo pacman-key --recv-key FBA220DFC880C036 --keyserver keyserver.ubuntu.com
-	sudo pacman-key --lsign-key FBA220DFC880C036
-	keyring="https://cdn-mirror.chaotic.cx/chaotic-aur/chaotic-keyring.pkg.tar.zst"
-	mirrors="https://cdn-mirror.chaotic.cx/chaotic-aur/chaotic-mirrorlist.pkg.tar.zst"
-	sudo pacman -U --noconfirm "$keyring" "$mirrors"
-	configs="/etc/pacman.conf"
-	if ! grep -q "chaotic-aur" "$configs" 2>/dev/null; then
-		[[ -z $(tail -1 "$configs") ]] || echo "" | sudo tee -a "$configs"
-		echo "[chaotic-aur]" | sudo tee -a "$configs"
-		echo "Include = /etc/pacman.d/chaotic-mirrorlist" | sudo tee -a "$configs"
-	fi
+	# sudo pacman-key --recv-key FBA220DFC880C036 --keyserver keyserver.ubuntu.com
+	# sudo pacman-key --lsign-key FBA220DFC880C036
+	# keyring="https://cdn-mirror.chaotic.cx/chaotic-aur/chaotic-keyring.pkg.tar.zst"
+	# mirrors="https://cdn-mirror.chaotic.cx/chaotic-aur/chaotic-mirrorlist.pkg.tar.zst"
+	# sudo pacman -U --noconfirm "$keyring" "$mirrors"
+	# configs="/etc/pacman.conf"
+	# if ! grep -q "chaotic-aur" "$configs" 2>/dev/null; then
+	# 	[[ -z $(tail -1 "$configs") ]] || echo "" | sudo tee -a "$configs"
+	# 	echo "[chaotic-aur]" | sudo tee -a "$configs"
+	# 	echo "Include = /etc/pacman.d/chaotic-mirrorlist" | sudo tee -a "$configs"
+	# fi
 
 	# Update system
 	sudo pacman -Syyu --noconfirm
@@ -24,12 +24,11 @@ update_archlinux() {
 	sudo fwupdmgr get-devices && sudo fwupdmgr refresh --force
 	sudo fwupdmgr get-updates && sudo fwupdmgr update -y
 
-}
-
-update_ungoogled_chromium() {
-
-	# Update ungoogled-chromium
-	sudo pacman -S --needed --noconfirm chaotic-aur/ungoogled-chromium-bin
+	# Update yay
+	sudo pacman -S --needed --noconfirm base-devel git
+	git clone "https://aur.archlinux.org/yay-bin.git"
+	cd yay-bin && makepkg -si --noconfirm
+	cd .. && rm -rf yay-bin
 
 }
 
@@ -44,6 +43,20 @@ update_gnome() {
 		'org.gnome.Nautilus.desktop', \
 		'org.gnome.Console.desktop' \
 	]"
+
+}
+
+update_jdownloader() {
+
+	# Update jdownloader
+	yay -S --needed --noconfirm jdownloader2
+
+}
+
+update_ungoogled_chromium() {
+
+	# Update ungoogled-chromium
+	yay -S --needed --noconfirm ungoogled-chromium-bin
 
 }
 
@@ -75,6 +88,7 @@ main() {
 	# Handle functions
 	factors=(
 		"update_archlinux"
+		"update_jdownloader"
 		"update_ungoogled_chromium"
 		"update_gnome"
 	)
