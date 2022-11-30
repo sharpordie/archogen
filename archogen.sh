@@ -1,7 +1,7 @@
 update_archlinux() {
 
 	# Change the hostname.
-	hostnamectl hostname archlinux
+	hostnamectl hostname archogen
 
 	# Update chaotic-aur
 	sudo pacman-key --recv-key FBA220DFC880C036 --keyserver keyserver.ubuntu.com
@@ -24,11 +24,8 @@ update_archlinux() {
 	sudo fwupdmgr get-devices && sudo fwupdmgr refresh --force
 	sudo fwupdmgr get-updates && sudo fwupdmgr update -y
 
-	# Update yay
-	sudo pacman -S --needed --noconfirm base-devel git
-	git clone "https://aur.archlinux.org/yay-bin.git"
-	cd yay-bin && makepkg -si --noconfirm
-	cd .. && rm -rf yay-bin
+	# Update dependencies
+	sudo pacman -S --needed --noconfirm yay ydotool
 
 }
 
@@ -41,6 +38,7 @@ update_gnome() {
 	# Change favorites
 	gsettings set org.gnome.shell favorite-apps "[ \
 		'org.gnome.Nautilus.desktop', \
+		'org.jdownloader.JDownloader.desktop', \
 		'org.gnome.Console.desktop' \
 	]"
 
@@ -89,7 +87,8 @@ update_jdownloader() {
 update_ungoogled_chromium() {
 
 	# Update ungoogled-chromium
-	yay -S --needed --noconfirm ungoogled-chromium-bin
+	sudo pacman -S --needed --noconfirm ungoogled-chromium
+	# yay -S --needed --noconfirm ungoogled-chromium-bin
 
 }
 
@@ -122,8 +121,8 @@ main() {
 	factors=(
 		"update_archlinux"
 		"update_jdownloader"
-		# "update_ungoogled_chromium"
-		# "update_gnome"
+		"update_ungoogled_chromium"
+		"update_gnome"
 	)
 
 	# Output progress
