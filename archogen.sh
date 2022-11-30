@@ -36,10 +36,13 @@ update_gnome() {
 	gsettings set org.gnome.desktop.interface icon-theme "Papirus-Dark"
 
 	# Change favorites
+	gsettings set org.gnome.shell favorite-apps "[]"
 	gsettings set org.gnome.shell favorite-apps "[ \
 		'org.gnome.Nautilus.desktop', \
+		'chromium.desktop', \
 		'org.jdownloader.JDownloader.desktop', \
-		'org.gnome.Console.desktop' \
+		'org.gnome.Console.desktop', \
+		'pycharm-professional.desktop' \
 	]"
 
 }
@@ -59,7 +62,7 @@ update_jdownloader() {
 
 	# Change desktop
 	desktop="/var/lib/flatpak/exports/share/applications/org.jdownloader.JDownloader.desktop"
-	sudo sed -i 's/Icon=.*/Icon=jdownloader/' "$desktop" # TODO: Add revert as comment
+	sudo sed -i 's/Icon=.*/Icon=jdownloader/' "$desktop"
 
 	# Change settings
 	appdata="$HOME/.var/app/org.jdownloader.JDownloader/data/jdownloader"
@@ -84,24 +87,33 @@ update_jdownloader() {
 
 }
 
+update_pycharm_professional() {
+
+	# Update pycharm-professional
+	sudo pacman -S --needed --noconfirm pycharm-professional
+
+}
+
 update_ungoogled_chromium() {
 
 	# Update ungoogled-chromium
 	sudo pacman -S --needed --noconfirm ungoogled-chromium
-	# yay -S --needed --noconfirm ungoogled-chromium-bin
 
 }
 
 main() {
 
 	# Prompt password
-	sudo -v && clear
+	clear && sudo -v
 
 	# Remove timeout
 	echo "Defaults timestamp_timeout=-1" | sudo tee "/etc/sudoers.d/disable_timeout" &>/dev/null
 
 	# Remove screensaver
 	gsettings set org.gnome.desktop.screensaver lock-enabled false
+
+	# Remove notifications
+	gsettings set org.gnome.desktop.notifications show-banners false
 
 	# Change title
 	printf "\033]0;%s\007" "archogen"
@@ -120,8 +132,11 @@ main() {
 	# Handle functions
 	factors=(
 		"update_archlinux"
-		"update_jdownloader"
 		"update_ungoogled_chromium"
+
+		"update_jdownloader"
+		"update_pycharm_professional"
+
 		"update_gnome"
 	)
 
@@ -146,6 +161,9 @@ main() {
 
 	# Revert screensaver
 	gsettings set org.gnome.desktop.screensaver lock-enabled true
+
+	# Revert notifications
+	gsettings set org.gnome.desktop.notifications show-banners true
 
 }
 
