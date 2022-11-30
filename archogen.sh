@@ -4,17 +4,17 @@ update_archlinux() {
 	hostnamectl hostname archlinux
 
 	# Update chaotic-aur
-	# sudo pacman-key --recv-key FBA220DFC880C036 --keyserver keyserver.ubuntu.com
-	# sudo pacman-key --lsign-key FBA220DFC880C036
-	# keyring="https://cdn-mirror.chaotic.cx/chaotic-aur/chaotic-keyring.pkg.tar.zst"
-	# mirrors="https://cdn-mirror.chaotic.cx/chaotic-aur/chaotic-mirrorlist.pkg.tar.zst"
-	# sudo pacman -U --noconfirm "$keyring" "$mirrors"
-	# configs="/etc/pacman.conf"
-	# if ! grep -q "chaotic-aur" "$configs" 2>/dev/null; then
-	# 	[[ -z $(tail -1 "$configs") ]] || echo "" | sudo tee -a "$configs"
-	# 	echo "[chaotic-aur]" | sudo tee -a "$configs"
-	# 	echo "Include = /etc/pacman.d/chaotic-mirrorlist" | sudo tee -a "$configs"
-	# fi
+	sudo pacman-key --recv-key FBA220DFC880C036 --keyserver keyserver.ubuntu.com
+	sudo pacman-key --lsign-key FBA220DFC880C036
+	keyring="https://cdn-mirror.chaotic.cx/chaotic-aur/chaotic-keyring.pkg.tar.zst"
+	mirrors="https://cdn-mirror.chaotic.cx/chaotic-aur/chaotic-mirrorlist.pkg.tar.zst"
+	sudo pacman -U --noconfirm "$keyring" "$mirrors"
+	configs="/etc/pacman.conf"
+	if ! grep -q "chaotic-aur" "$configs" 2>/dev/null; then
+		[[ -z $(tail -1 "$configs") ]] || echo "" | sudo tee -a "$configs"
+		echo "[chaotic-aur]" | sudo tee -a "$configs"
+		echo "Include = /etc/pacman.d/chaotic-mirrorlist" | sudo tee -a "$configs"
+	fi
 
 	# Update system
 	sudo pacman -Syyu --noconfirm
@@ -48,30 +48,41 @@ update_gnome() {
 
 update_jdownloader() {
 
-	# Update jdk17-jetbrains-bin
-	# yay -S --needed --noconfirm jdk17-jetbrains-bin
-	# sudo archlinux-java set jdk17-jetbrains-bin
+	deposit=${1:-$HOME/Downloads/JD2}
+
+	# Update dependencies
+	sudo pacman -S --needed --noconfirm flatpak jq moreutils
 
 	# Update jdownloader
-	yay -S --needed --noconfirm jdownloader2
+	flatpak install --assumeyes flathub org.jdownloader.JDownloader
 
-	# Change fonts
-	# configs="$HOME/.profile"
-	# if ! grep -q "_JAVA_OPTIONS" "$configs" 2>/dev/null; then
-	# 	[[ -s "$configs" ]] || touch "$configs"
-	# 	[[ -z $(tail -1 "$configs") ]] || echo "" >>"$configs"
-	# 	echo "_JAVA_OPTIONS='-Dawt.useSystemAAFontSettings=on'" >>"$configs"
-	# fi
-
-	# Change fonts
-	configs="/etc/environment"
-	if ! grep -q "_JAVA_OPTIONS" "$configs" 2>/dev/null; then
-		[[ -z $(tail -1 "$configs") ]] || echo "" | sudo tee -a "$configs"
-		echo "_JAVA_OPTIONS='-Dawt.useSystemAAFontSettings=on'" | sudo tee -a "$configs"
-	fi
+	# Create deposit
+	mkdir -p "$deposit"
 
 	# Change desktop
-	desktop="/usr/share/applications/jdownloader.desktop"
+	desktop="/var/lib/flatpak/exports/share/applications/org.jdownloader.JDownloader.desktop"
+	sudo sed -i 's/Icon=.*/Icon=jdownloader/' "$desktop" # TODO: Add revert as comment
+
+	# Change settings
+	appdata="$HOME/.var/app/org.jdownloader.JDownloader/data/jdownloader"
+	config1="$appdata/cfg/org.jdownloader.settings.GraphicalUserInterfaceSettings.json"
+	config2="$appdata/cfg/org.jdownloader.settings.GeneralSettings.json"
+	config3="$appdata/cfg/org.jdownloader.gui.jdtrayicon.TrayExtension.json"
+	(flatpak run org.jdownloader.JDownloader >/dev/null 2>&1 &) && sleep 8
+	while [[ ! -f "$config1" ]]; do sleep 2; done
+	flatpak kill org.jdownloader.JDownloader && sleep 8
+	jq '.bannerenabled = false' "$config1" | sponge "$config1"
+	jq '.donatebuttonlatestautochange = 4102444800000' "$config1" | sponge "$config1"
+	jq '.donatebuttonstate = "AUTO_HIDDEN"' "$config1" | sponge "$config1"
+	jq '.myjdownloaderviewvisible = false' "$config1" | sponge "$config1"
+	jq '.premiumalertetacolumnenabled = false' "$config1" | sponge "$config1"
+	jq '.premiumalertspeedcolumnenabled = false' "$config1" | sponge "$config1"
+	jq '.premiumalerttaskcolumnenabled = false' "$config1" | sponge "$config1"
+	jq '.specialdealoboomdialogvisibleonstartup = false' "$config1" | sponge "$config1"
+	jq '.specialdealsenabled = false' "$config1" | sponge "$config1"
+	jq '.speedmetervisible = false' "$config1" | sponge "$config1"
+	jq ".defaultdownloadfolder = \"$deposit\"" "$config2" | sponge "$config2"
+	jq '.enabled = false' "$config3" | sponge "$config3"
 
 }
 
