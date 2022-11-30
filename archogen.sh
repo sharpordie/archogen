@@ -25,7 +25,8 @@ update_archlinux() {
 	sudo fwupdmgr get-updates && sudo fwupdmgr update -y
 
 	# Update dependencies
-	sudo pacman -S --needed --noconfirm yay ydotool
+	sudo pacman -S --needed --noconfirm flatpak jq moreutils yay ydotool
+	sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 
 }
 
@@ -41,7 +42,7 @@ update_gnome() {
 		'org.gnome.Nautilus.desktop', \
 		'chromium.desktop', \
 		'org.jdownloader.JDownloader.desktop', \
-		'org.gnome.Console.desktop', \
+		'virt-manager.desktop', \
 		'pycharm-professional.desktop' \
 	]"
 
@@ -50,9 +51,6 @@ update_gnome() {
 update_jdownloader() {
 
 	deposit=${1:-$HOME/Downloads/JD2}
-
-	# Update dependencies
-	sudo pacman -S --needed --noconfirm flatpak jq moreutils
 
 	# Update jdownloader
 	flatpak install --assumeyes flathub org.jdownloader.JDownloader
@@ -94,10 +92,28 @@ update_pycharm_professional() {
 
 }
 
+update_quickemu() {
+
+	# Update quickemu
+	sudo pacman -S --needed --noconfirm quickemu
+
+}
+
 update_ungoogled_chromium() {
 
 	# Update ungoogled-chromium
 	sudo pacman -S --needed --noconfirm ungoogled-chromium
+
+}
+
+update_virt_manager() {
+
+	# Update virt-manager
+	sudo pacman -S --needed --noconfirm dnsmasq	edk2-ovmf iptables-nft
+	sudo pacman -S --needed --noconfirm libvirt qemu-desktop virt-manager
+
+	# Enable service
+	sudo systemctl enable --now libvirtd.service
 
 }
 
@@ -136,6 +152,8 @@ main() {
 
 		"update_jdownloader"
 		"update_pycharm_professional"
+		"update_quickemu"
+		"update_virt_manager"
 
 		"update_gnome"
 	)
