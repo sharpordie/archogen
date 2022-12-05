@@ -1,6 +1,6 @@
 <h1><samp>ARCHOGEN</samp></h1>
 
-Opiniated post-installation script for Arch Linux.
+Personal post-installation script for Arch Linux.
 
 <h2><samp>SUPPORTS</samp></h2>
 
