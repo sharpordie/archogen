@@ -13,6 +13,6 @@ wget -qO- https://raw.githubusercontent.com/sharpordie/archogen/main/archogen.sh
 ```
 <h2><samp>SHOWCASE</samp></h2>
 
-<a href=""><img src="https://fakeimg.pl/852x480/000/fff/?text=‏‏‎ ‎" width="49.5%"/></a><a><img src="https://upload.wikimedia.org/wikipedia/commons/c/ca/1x1.png" width="1%"/></a><a href=""><img src="https://fakeimg.pl/852x480/000/fff/?text=‏‏‎ ‎" width="49.5%"/></a>  
-<a href=""><img src="https://fakeimg.pl/852x480/000/fff/?text=‏‏‎ ‎" width="49.5%"/></a><a><img src="https://upload.wikimedia.org/wikipedia/commons/c/ca/1x1.png" width="1%"/></a><a href=""><img src="https://fakeimg.pl/852x480/000/fff/?text=‏‏‎ ‎" width="49.5%"/></a>  
-<a href=""><img src="https://fakeimg.pl/852x480/000/fff/?text=‏‏‎ ‎" width="49.5%"/></a><a><img src="https://upload.wikimedia.org/wikipedia/commons/c/ca/1x1.png" width="1%"/></a><a href=""><img src="https://fakeimg.pl/852x480/000/fff/?text=‏‏‎ ‎" width="49.5%"/></a>
+<a href=""><img src="https://fakeimg.pl/852x480/000/fff/?text=‏‏‎ ‎" width="49.25%"/></a><a><img src="https://upload.wikimedia.org/wikipedia/commons/c/ca/1x1.png" width="1.5%"/></a><a href=""><img src="https://fakeimg.pl/852x480/000/fff/?text=‏‏‎ ‎" width="49.25%"/></a>  
+<a href=""><img src="https://fakeimg.pl/852x480/000/fff/?text=‏‏‎ ‎" width="49.25%"/></a><a><img src="https://upload.wikimedia.org/wikipedia/commons/c/ca/1x1.png" width="1.5%"/></a><a href=""><img src="https://fakeimg.pl/852x480/000/fff/?text=‏‏‎ ‎" width="49.25%"/></a>  
+<a href=""><img src="https://fakeimg.pl/852x480/000/fff/?text=‏‏‎ ‎" width="49.25%"/></a><a><img src="https://upload.wikimedia.org/wikipedia/commons/c/ca/1x1.png" width="1.5%"/></a><a href=""><img src="https://fakeimg.pl/852x480/000/fff/?text=‏‏‎ ‎" width="49.25%"/></a>
