@@ -25,7 +25,7 @@ update_chromium() {
 
     # Update package
     local present=$([[ -n $(pacman -Q | grep ungoogled-chromium-bin) ]] && echo "true" || echo "false")
-    yay -S --noconfirm ungoogled-chromium-bin
+    yay -S --needed --noconfirm ungoogled-chromium-bin
 
     # Finish installation
 
