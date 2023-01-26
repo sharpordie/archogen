@@ -324,6 +324,28 @@ update_vscode_extension() {
 
 }
 
+update_waydroid() {
+
+	# Update package
+	yay -S --needed --noconfirm waydroid
+	sudo waydroid init
+
+	# Update package
+	# yay -S --needed --noconfirm waydroid waydroid-image-gapps
+	# sudo waydroid init -s GAPPS -f
+
+	# Enable services
+	sudo systemctl enable --now waydroid-container.service
+
+}
+
+update_wireshark() {
+
+	# Update package
+	sudo pacman -S --needed --noconfirm wireshark-qt
+
+}
+
 main() {
 
 	# Prompt password
@@ -389,6 +411,7 @@ main() {
 		"update_scrcpy"
 		"update_transmission"
 		"update_vmware_workstation"
+		"update_wireshark"
 		"update_yt_dlp"
 	)
 
