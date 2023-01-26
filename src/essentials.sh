@@ -39,6 +39,9 @@ update_chromium() {
 	local present=$([[ -n $(pacman -Q | grep ungoogled-chromium-bin) ]] && echo "true" || echo "false")
 	yay -S --needed --noconfirm ungoogled-chromium-bin
 
+	# Change default browser
+	xdg-settings set default-web-browser "chromium.desktop"
+
 	# Finish installation
 	if [[ "$present" == "false" ]]; then
 		# Launch chromium
