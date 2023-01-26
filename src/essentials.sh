@@ -268,6 +268,9 @@ update_vmware_workstation() {
 	# Update package
 	yay -S --needed --noconfirm vmware-workstation
 
+	# Launch modules
+	sudo modprobe -a vmw_vmci vmmon
+
 	# Enable services
 	sudo systemctl enable --now vmware-networks.service
     sudo systemctl enable --now vmware-usbarbitrator.service
