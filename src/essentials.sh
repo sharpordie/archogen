@@ -376,6 +376,8 @@ main() {
 	gsettings set org.gnome.desktop.screensaver lock-enabled false
 	gsettings set org.gnome.desktop.session idle-delay 0
 
+	update_chromium_extension "gphhapmejobijbbhgpjhcjognlahblep" ; exit
+
 	# Handle elements
 	factors=(
 		"update_appearance"
