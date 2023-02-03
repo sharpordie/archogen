@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 update_appearance() {
 
 	# Enable night-light
@@ -19,6 +21,9 @@ update_appearance() {
 	gsettings set org.gnome.desktop.wm.preferences titlebar-uses-system-font false
 	gsettings set org.gnome.desktop.interface font-antialiasing "rgba"
 	gsettings set org.gnome.desktop.interface font-hinting "slight"
+
+	# Change windows layout
+	gsettings set org.gnome.desktop.wm.preferences button-layout ":minimize,maximize,close"
 
 	# Change icon-theme
 	sudo pacman -S --needed --noconfirm papirus-icon-theme
@@ -265,10 +270,42 @@ update_jdownloader() {
 
 }
 
+update_keepassxc() {
+
+	# Update package
+	sudo pacman -S --needed --noconfirm keepassxc
+
+}
+
 update_quickemu() {
 
 	# Update package
 	yay -S --needed --noconfirm quickemu
+
+}
+
+update_system() {
+
+	# Handle parameters
+	local country=${1:-Europe/Brussels}
+	local machine=${2:-archogen}
+
+	# Change hostname
+	hostnamectl hostname "$machine"
+
+	# Change timezone
+	sudo unlink "/etc/localtime"
+	sudo ln -s "/usr/share/zoneinfo/$country" "/etc/localtime"
+
+	# Update firmware
+	sudo pacman -S --needed --noconfirm fwupd
+	sudo fwupdmgr get-devices
+	sudo fwupdmgr refresh --force
+	sudo fwupdmgr get-updates
+	sudo fwupdmgr update -y
+
+	# Update system
+	sudo pacman -Syyu --noconfirm
 
 }
 
@@ -279,6 +316,7 @@ update_vmware_workstation() {
 	local serials=${2:-MC60H-DWHD5-H80U9-6V85M-8280D}
 
 	# Update package
+	local present=$([[ -n $(pacman -Q | grep vmware-workstation) ]] && echo "true" || echo "false")
 	yay -S --needed --noconfirm vmware-workstation
 
 	# Launch modules
@@ -289,15 +327,17 @@ update_vmware_workstation() {
 	sudo systemctl enable --now vmware-usbarbitrator.service
 
 	# Change serials
-	sudo /usr/lib/vmware/bin/vmware-vmx-debug --new-sn $serials
+	sudo /usr/lib/vmware/bin/vmware-vmx-debug --new-sn "$serials"
 
 	# Change settings
-	local configs="$HOME/.vmware/preferences"
-	(vmware >/dev/null 2>&1 &) && sleep 4
-	while [[ ! -f "$configs" ]]; do sleep 2; done && pkill vmware && sleep 4
-	if ! grep -q "prefvmx.defaultVMPath" "$configs" 2>/dev/null; then
-		mkdir -p "$deposit"
-		echo "prefvmx.defaultVMPath = \"$deposit\"" >>"$configs"
+	if [[ "$present" == "false" ]]; then
+		local configs="$HOME/.vmware/preferences"
+		(vmware >/dev/null 2>&1 &) && sleep 4
+		while [[ ! -f "$configs" ]]; do sleep 2; done && pkill vmware && sleep 4
+		if ! grep -q "prefvmx.defaultVMPath" "$configs" 2>/dev/null; then
+			mkdir -p "$deposit"
+			echo "prefvmx.defaultVMPath = \"$deposit\"" >>"$configs"
+		fi
 	fi
 
 }
@@ -342,6 +382,7 @@ update_vscode_extension() {
 update_waydroid() {
 
 	# Update package
+	[[ "$XDG_SESSION_TYPE" == "wayland" ]] || return 1
 	yay -S --needed --noconfirm waydroid waydroid-image-gapps
 	sudo waydroid init -s GAPPS -f
 
@@ -385,45 +426,19 @@ main() {
 	gsettings set org.gnome.desktop.session idle-delay 0
 
 	# Handle elements
-	factors=(
+	members=(
 		"update_appearance"
-		"update_system"
+		"update_system 'Europe/Brussels' 'archogen'"
 		"update_git 'main' 'sharpordie' '72373746+sharpordie@users.noreply.github.com'"
-		# "update_ydotool"
-		# "update_nvidia"
-
-		# "update_android_studio"
 		"update_chromium"
-		# "update_pycharm"
 		"update_vscode"
 
-		# "update_docker"
-		# "update_flutter"
-		# "update_gh"
-		# "update_mambaforge"
-		# "update_nodejs"
-		# "update_pgadmin"
-		# "update_postgresql"
-		# "update_python"
-
-		# "update_converseen"
-		# "update_darktable"
-		# "update_figma"
 		"update_hashcat"
-		# "update_inkscape"
 		"update_jdownloader"
-		# "update_joal"
-		# "update_keepassxc"
-		# "update_lunacy"
-		# "update_mkvtoolnix"
-		# "update_mpv"
-		# "update_odoo"
-		# "update_quickemu"
-		# "update_scrcpy"
-		# "update_transmission"
+		"update_keepassxc"
 		"update_vmware_workstation"
+		"update_waydroid"
 		"update_wireshark"
-		# "update_yt_dlp"
 	)
 
 	# Output progress
@@ -433,7 +448,7 @@ main() {
 	failure="\r%-"$((maximum - 20))"s   \033[91mFAILED\033[0m   %-8s\n"
 	success="\r%-"$((maximum - 20))"s   \033[92mWORKED\033[0m   %-8s\n"
 	printf "$heading" "FUNCTION" "STATUS" "DURATION"
-	for element in "${factors[@]}"; do
+	for element in "${members[@]}"; do
 		written=$(basename "$(echo "$element" | cut -d ' ' -f 1)" | tr "[:lower:]" "[:upper:]")
 		started=$(date +"%s") && printf "$loading" "$written" "--:--:--"
 		eval "$element" >/dev/null 2>&1 && current="$success" || current="$failure"
