@@ -4,11 +4,21 @@ update_appearance() {
 	gsettings set org.gnome.settings-daemon.plugins.color night-light-enabled true
 	gsettings set org.gnome.settings-daemon.plugins.color night-light-schedule-from 0
 	gsettings set org.gnome.settings-daemon.plugins.color night-light-schedule-to 0
-	gsettings set org.gnome.settings-daemon.plugins.color night-light-temperature 5000
+	gsettings set org.gnome.settings-daemon.plugins.color night-light-temperature 4000
 
 	# Change color-theme
 	gsettings set org.gnome.desktop.interface color-scheme "prefer-dark"
 	gsettings set org.gnome.desktop.interface gtk-theme "Adwaita-dark"
+
+	# Change fonts
+	sudo pacman -S --needed --noconfirm ttf-ubuntu-font-family
+	gsettings set org.gnome.desktop.interface font-name "Ubuntu 10"
+	gsettings set org.gnome.desktop.interface document-font-name "Sans 10"
+	gsettings set org.gnome.desktop.interface monospace-font-name ""
+	gsettings set org.gnome.desktop.wm.preferences titlebar-font "Ubuntu Bold 10"
+	gsettings set org.gnome.desktop.wm.preferences titlebar-uses-system-font false
+	gsettings set org.gnome.desktop.interface font-antialiasing "rgba"
+	gsettings set org.gnome.desktop.interface font-hinting "slight"
 
 	# Change icon-theme
 	sudo pacman -S --needed --noconfirm papirus-icon-theme
@@ -276,15 +286,17 @@ update_vmware_workstation() {
 
 	# Enable services
 	sudo systemctl enable --now vmware-networks.service
-    sudo systemctl enable --now vmware-usbarbitrator.service
+	sudo systemctl enable --now vmware-usbarbitrator.service
 
 	# Change serials
 	sudo /usr/lib/vmware/bin/vmware-vmx-debug --new-sn $serials
 
 	# Change settings
-	# TODO: Verify if first launch is required
-	configs="$HOME/.vmware/preferences"
+	local configs="$HOME/.vmware/preferences"
+	(vmware >/dev/null 2>&1 &) && sleep 4
+	while [[ ! -f "$configs" ]]; do sleep 2; done && pkill vmware && sleep 4
 	if ! grep -q "prefvmx.defaultVMPath" "$configs" 2>/dev/null; then
+		mkdir -p "$deposit"
 		echo "prefvmx.defaultVMPath = \"$deposit\"" >>"$configs"
 	fi
 
@@ -330,12 +342,8 @@ update_vscode_extension() {
 update_waydroid() {
 
 	# Update package
-	yay -S --needed --noconfirm waydroid
-	sudo waydroid init
-
-	# Update package
-	# yay -S --needed --noconfirm waydroid waydroid-image-gapps
-	# sudo waydroid init -s GAPPS -f
+	yay -S --needed --noconfirm waydroid waydroid-image-gapps
+	sudo waydroid init -s GAPPS -f
 
 	# Enable services
 	sudo systemctl enable --now waydroid-container.service
@@ -376,48 +384,46 @@ main() {
 	gsettings set org.gnome.desktop.screensaver lock-enabled false
 	gsettings set org.gnome.desktop.session idle-delay 0
 
-	update_chromium_extension "gphhapmejobijbbhgpjhcjognlahblep" ; exit
-
 	# Handle elements
 	factors=(
 		"update_appearance"
 		"update_system"
-		"update_git main sharpordie 72373746+sharpordie@users.noreply.github.com"
-		"update_ydotool"
-		"update_nvidia"
+		"update_git 'main' 'sharpordie' '72373746+sharpordie@users.noreply.github.com'"
+		# "update_ydotool"
+		# "update_nvidia"
 
-		"update_android_studio"
+		# "update_android_studio"
 		"update_chromium"
-		"update_pycharm"
+		# "update_pycharm"
 		"update_vscode"
 
-		"update_docker"
-		"update_flutter"
-		"update_gh"
-		"update_mambaforge"
-		"update_nodejs"
-		"update_pgadmin"
-		"update_postgresql"
-		"update_python"
+		# "update_docker"
+		# "update_flutter"
+		# "update_gh"
+		# "update_mambaforge"
+		# "update_nodejs"
+		# "update_pgadmin"
+		# "update_postgresql"
+		# "update_python"
 
-		"update_converseen"
-		"update_darktable"
-		"update_figma"
+		# "update_converseen"
+		# "update_darktable"
+		# "update_figma"
 		"update_hashcat"
-		"update_inkscape"
+		# "update_inkscape"
 		"update_jdownloader"
-		"update_joal"
-		"update_keepassxc"
-		"update_lunacy"
-		"update_mkvtoolnix"
-		"update_mpv"
-		"update_odoo"
-		"update_quickemu"
-		"update_scrcpy"
-		"update_transmission"
+		# "update_joal"
+		# "update_keepassxc"
+		# "update_lunacy"
+		# "update_mkvtoolnix"
+		# "update_mpv"
+		# "update_odoo"
+		# "update_quickemu"
+		# "update_scrcpy"
+		# "update_transmission"
 		"update_vmware_workstation"
 		"update_wireshark"
-		"update_yt_dlp"
+		# "update_yt_dlp"
 	)
 
 	# Output progress
