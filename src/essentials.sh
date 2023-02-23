@@ -14,6 +14,8 @@ update_appearance() {
 
 	# Change fonts
 	sudo pacman -S --needed --noconfirm ttf-ubuntu-font-family
+	sudo pacman -Rdd --noconfirm bubblewrap
+	yes | yay -S --needed fontconfig-ubuntu
 	gsettings set org.gnome.desktop.interface font-name "Ubuntu 10"
 	gsettings set org.gnome.desktop.interface document-font-name "Sans 10"
 	gsettings set org.gnome.desktop.interface monospace-font-name ""
