@@ -13,7 +13,7 @@ update_appearance() {
 	gsettings set org.gnome.desktop.interface gtk-theme "Adwaita-dark"
 
 	# Change fonts
-	sudo pacman -S --needed --noconfirm ttf-ubuntu-font-family
+	sudo pacman -S --needed --noconfirm noto-fonts-emoji ttf-ubuntu-font-family
 	sudo pacman -Rdd --noconfirm bubblewrap
 	yes | yay -S --needed fontconfig-ubuntu
 	gsettings set org.gnome.desktop.interface font-name "Ubuntu 10"
