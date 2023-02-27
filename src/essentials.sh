@@ -400,6 +400,13 @@ update_wireshark() {
 
 }
 
+update_woeusb_ng() {
+
+	# Update package
+	yay -S --needed --noconfirm woeusb-ng
+
+}
+
 main() {
 
 	# Prompt password
