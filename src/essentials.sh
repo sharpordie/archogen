@@ -383,13 +383,18 @@ update_vscode_extension() {
 
 update_waydroid() {
 
+	# Update dependencies
+	if [[ "$XDG_SESSION_TYPE" == "x11" ]]; then sudo pacman -S --needed --noconfirm weston; fi
+
 	# Update package
-	[[ "$XDG_SESSION_TYPE" == "wayland" ]] || return 1
-	yay -S --needed --noconfirm waydroid waydroid-image-gapps
+	yay -S --needed --noconfirm binder_linux-dkms waydroid waydroid-image-gapps
 	sudo waydroid init -s GAPPS -f
 
 	# Enable services
 	sudo systemctl enable --now waydroid-container.service
+
+	# Change desktop
+	# local rootdir="$HOME/.local/share/applications"
 
 }
 
@@ -441,7 +446,6 @@ main() {
 		"update_git 'main' 'sharpordie' '72373746+sharpordie@users.noreply.github.com'"
 		"update_chromium"
 		"update_vscode"
-
 		"update_hashcat"
 		"update_jdownloader"
 		"update_keepassxc"
