@@ -279,6 +279,18 @@ update_keepassxc() {
 
 }
 
+update_lutris() {
+
+	# Update dependencies
+	if [[ $(lspci | grep -e VGA) == *"GeForce"* ]]; then
+		sudo pacman -S --needed --noconfirm nvidia-dkms nvidia-utils lib32-nvidia-utils nvidia-settings vulkan-icd-loader lib32-vulkan-icd-loader
+	fi
+
+	# Update package
+	sudo pacman -S --needed --noconfirm lutris
+
+}
+
 update_quickemu() {
 
 	# Update package
@@ -350,7 +362,7 @@ update_vmware_workstation() {
 update_vscode() {
 
 	# Update dependencies
-	sudo pacman -S --needed --noconfirm jq moreutils
+	sudo pacman -S --needed --noconfirm jq moreutils otf-cascadia-code
 
 	# Update package
 	yay -S --needed --noconfirm visual-studio-code-bin
@@ -450,11 +462,13 @@ main() {
 		"update_chromium"
 		"update_vscode"
 		"update_hashcat"
+		# "update_lutris"
 		"update_jdownloader"
 		"update_keepassxc"
 		"update_vmware_workstation"
-		"update_waydroid"
-		"update_wireshark"
+		# "update_waydroid"
+		# "update_wireshark"
+		# "update_woeusb_ng"
 	)
 
 	# Output progress
