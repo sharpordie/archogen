@@ -291,6 +291,14 @@ update_lutris() {
 
 }
 
+update_pycharm_professional() {
+
+	# Update package
+	local present=$([[ -n $(pacman -Q | grep pycharm-professional) ]] && echo "true" || echo "false")
+	yay -S --needed --noconfirm pycharm-professional
+
+}
+
 update_quickemu() {
 
 	# Update package
@@ -320,6 +328,13 @@ update_system() {
 
 	# Update system
 	sudo pacman -Syyu --noconfirm
+
+}
+
+update_tinymediamanager() {
+
+	# Update package
+	yay -S --needed --noconfirm tiny-media-manager
 
 }
 
@@ -465,6 +480,8 @@ main() {
 		# "update_lutris"
 		"update_jdownloader"
 		"update_keepassxc"
+		"update_pycharm_professional"
+		# "update_tinymediamanager"
 		"update_vmware_workstation"
 		# "update_waydroid"
 		# "update_wireshark"
