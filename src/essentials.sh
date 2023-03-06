@@ -342,6 +342,9 @@ update_vmware_workstation() {
 		fi
 	fi
 
+	# Update unlocker
+	yay -S --needed --noconfirm vmware-unlocker-bin
+
 }
 
 update_vscode() {
