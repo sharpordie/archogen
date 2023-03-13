@@ -1,5 +1,39 @@
 #!/usr/bin/env bash
 
+invoke_restart() {
+
+	# Enable automatic login
+	local configs="/etc/gdm/custom.conf"
+	local pattern="AutomaticLogin="
+	local payload="s/AutomaticLoginEnable=.*/AutomaticLoginEnable=True\nAutomaticLogin=$USER/"
+	if ! grep -q "$pattern" "$configs" 2>/dev/null; then sudo sed -i "$payload" "$configs"; fi
+	sudo sed -i "s/AutomaticLoginEnable=.*/AutomaticLoginEnable=True/" "$configs"
+	sudo sed -i "s/AutomaticLogin=.*/AutomaticLogin=$USER/" "$configs"
+
+	# Create startup desktop
+	current="$(cd -- "$(dirname "$0")" >/dev/null 2>&1 && pwd -P)"
+	startup="$HOME/.config/autostart/invoke_restart.desktop"
+	mkdir -p "$(dirname $startup)" && rm -f "$startup" &>/dev/null
+	echo "[Desktop Entry]" >>"$startup"
+	echo "Type=Application" >>"$startup"
+	echo "Exec=/usr/bin/kgx --command \"/bin/bash '$current/essentials.sh'\" --wait" >>"$startup"
+	echo "Hidden=false" >>"$startup"
+	echo "X-GNOME-Autostart-enabled=true" >>"$startup"
+	echo "Name=archogen" >>"$startup"
+
+	# Enable no-overview
+	yay -S --needed --noconfirm gnome-shell-extension-no-overview
+	local factors=$(gsettings get org.gnome.shell enabled-extensions)
+	[[ $factors == "@as []" ]] && gsettings set org.gnome.shell enabled-extensions "['no-overview@fthx']"
+	local factors=$(gsettings get org.gnome.shell enabled-extensions)
+	local enabled=$([[ $factors == *"'no-overview@fthx'"* ]] && echo "true" || echo "false")
+	[[ $enabled == "false" ]] && gsettings set org.gnome.shell enabled-extensions "${factors%]*}, 'no-overview@fthx']"
+
+	# Reboot the system
+	sudo reboot --force
+
+}
+
 update_appearance() {
 
 	# Enable night-light
@@ -320,14 +354,21 @@ update_system() {
 	sudo ln -s "/usr/share/zoneinfo/$country" "/etc/localtime"
 
 	# Update firmware
-	sudo pacman -S --needed --noconfirm fwupd
-	sudo fwupdmgr get-devices
-	sudo fwupdmgr refresh --force
-	sudo fwupdmgr get-updates
-	sudo fwupdmgr update -y
+	# sudo pacman -S --needed --noconfirm fwupd
+	# sudo fwupdmgr get-devices
+	# sudo fwupdmgr refresh --force
+	# sudo fwupdmgr get-updates
+	# sudo fwupdmgr update -y
 
 	# Update system
 	sudo pacman -Syyu --noconfirm
+
+	# Reboot if latest reboot was done less than three minutes ago
+	local current=$(date -d "$(uptime --since)" +"%s")
+	local maximum=$(date -d "1 minutes ago" +"%s")
+	local correct=$([[ $maximum -lt $current ]] && echo "false" || echo "true")
+	# local correct="true"
+	if [[ $correct == "true" ]]; then invoke_restart; fi
 
 }
 
@@ -444,8 +485,15 @@ update_woeusb_ng() {
 
 main() {
 
+	clear
+
 	# Prompt password
-	sudo -v && clear
+	# sudo -v && clear
+
+	# Remove timeouts
+	echo "Defaults timestamp_timeout=-1" | sudo tee "/etc/sudoers.d/disable_timeout" &>/dev/null
+	# sudo sed -i "s/# %sudo.*ALL=.*/%sudo ALL=(ALL) NOPASSWD:ALL/" "/etc/sudoers"
+	echo "$USER ALL=(ALL) NOPASSWD: ALL" | sudo tee -a "/etc/sudoers" &>/dev/null
 
 	# Change headline
 	printf "\033]0;%s\007" "archogen"
@@ -461,28 +509,29 @@ main() {
 	EOD
 	printf "\n\033[92m%s\033[00m\n\n" "$welcome"
 
-	# Remove timeouts
-	echo "Defaults timestamp_timeout=-1" | sudo tee "/etc/sudoers.d/disable_timeout" &>/dev/null
-
 	# Remove sleeping
 	gsettings set org.gnome.desktop.notifications show-banners false
 	gsettings set org.gnome.desktop.screensaver lock-enabled false
 	gsettings set org.gnome.desktop.session idle-delay 0
 
+	# Remove rebooter
+	sudo sed -i "s/AutomaticLoginEnable=.*/AutomaticLoginEnable=False/" "/etc/gdm/custom.conf"
+	rm -f "$HOME/.config/autostart/invoke_restart.desktop"
+
 	# Handle elements
 	members=(
-		"update_appearance"
+		# "update_appearance"
 		"update_system 'Europe/Brussels' 'archogen'"
 		"update_git 'main' 'sharpordie' '72373746+sharpordie@users.noreply.github.com'"
 		"update_chromium"
-		"update_vscode"
-		"update_hashcat"
+		# "update_vscode"
+		# "update_hashcat"
 		# "update_lutris"
-		"update_jdownloader"
-		"update_keepassxc"
-		"update_pycharm_professional"
+		# "update_jdownloader"
+		# "update_keepassxc"
+		# "update_pycharm_professional"
 		# "update_tinymediamanager"
-		"update_vmware_workstation"
+		# "update_vmware_workstation"
 		# "update_waydroid"
 		# "update_wireshark"
 		# "update_woeusb_ng"
@@ -511,9 +560,11 @@ main() {
 
 	# Revert timeouts
 	sudo rm "/etc/sudoers.d/disable_timeout"
+	# sudo sed -i "s/%sudo.*ALL=.*/# %sudo ALL=(ALL:ALL) ALL/" "/etc/sudoers"
+	sudo sed -i "s/$USER ALL=.*$//" "/etc/sudoers"
 
 	# Output new line
-	printf "\n"
+	printf "\n" && sleep 30
 
 }
 
