@@ -9,7 +9,7 @@ Personal post-installation script for Arch Linux.
 <h2><samp>STARTING</samp></h2>
 
 ```
-wget -qO- https://raw.githubusercontent.com/sharpordie/archogen/main/archogen.sh | bash
+wget -qO- https://raw.githubusercontent.com/sharpordie/archogen/main/src/archogen.sh | bash
 ```
 <h2><samp>SHOWCASE</samp></h2>
 

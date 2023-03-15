@@ -3,34 +3,37 @@
 invoke_restart() {
 
 	# Ensure gnome session
-    [[ "$XDG_SESSION_DESKTOP" == "gnome" ]] || return 1
+	[[ "$XDG_SESSION_DESKTOP" == "gnome" ]] || return 1
 
+	# TODO: Handle gnome keyring dialog with automatic login
 	# Enable automatic login
-	local configs="/etc/gdm/custom.conf"
-	local pattern="AutomaticLogin="
-	local payload="s/AutomaticLoginEnable=.*/AutomaticLoginEnable=True\nAutomaticLogin=$USER/"
-	if ! grep -q "$pattern" "$configs" 2>/dev/null; then sudo sed -i "$payload" "$configs"; fi
-	sudo sed -i "s/AutomaticLoginEnable=.*/AutomaticLoginEnable=True/" "$configs"
-	sudo sed -i "s/AutomaticLogin=.*/AutomaticLogin=$USER/" "$configs"
+	# local configs="/etc/gdm/custom.conf"
+	# local pattern="AutomaticLogin="
+	# local payload="s/AutomaticLoginEnable=.*/AutomaticLoginEnable=True\nAutomaticLogin=$USER/"
+	# if ! grep -q "$pattern" "$configs" 2>/dev/null; then sudo sed -i "$payload" "$configs"; fi
+	# sudo sed -i "s/AutomaticLoginEnable=.*/AutomaticLoginEnable=True/" "$configs"
+	# sudo sed -i "s/AutomaticLogin=.*/AutomaticLogin=$USER/" "$configs"
 
 	# Create startup desktop
-	current="$(cd -- "$(dirname "$0")" >/dev/null 2>&1 && pwd -P)"
-	startup="$HOME/.config/autostart/invoke_restart.desktop"
+	local deposit=$(cd -- "$(dirname "$0")" >/dev/null 2>&1 && pwd -P)
+	local current=$(readlink -f "${BASH_SOURCE[0]}")
+	local startup="$HOME/.config/autostart/invoke_restart.desktop"
 	mkdir -p "$(dirname $startup)" && rm -f "$startup" &>/dev/null
 	echo "[Desktop Entry]" >>"$startup"
 	echo "Type=Application" >>"$startup"
-	echo "Exec=/usr/bin/kgx --command \"/bin/bash '$current/essentials.sh'\" --wait" >>"$startup"
+	echo "Exec=/usr/bin/kgx --command \"/bin/bash '$current'\" --wait" >>"$startup"
 	echo "Hidden=false" >>"$startup"
 	echo "X-GNOME-Autostart-enabled=true" >>"$startup"
 	echo "Name=archogen" >>"$startup"
 
+	# TODO: Remove if using other extension with similar feature
 	# Enable no-overview extension
-	yay -S --needed --noconfirm gnome-shell-extension-no-overview
-	local factors=$(gsettings get org.gnome.shell enabled-extensions)
-	[[ $factors == "@as []" ]] && gsettings set org.gnome.shell enabled-extensions "['no-overview@fthx']"
-	local factors=$(gsettings get org.gnome.shell enabled-extensions)
-	local enabled=$([[ $factors == *"'no-overview@fthx'"* ]] && echo "true" || echo "false")
-	[[ $enabled == "false" ]] && gsettings set org.gnome.shell enabled-extensions "${factors%]*}, 'no-overview@fthx']"
+	# yay -S --needed --noconfirm gnome-shell-extension-no-overview
+	# local factors=$(gsettings get org.gnome.shell enabled-extensions)
+	# [[ $factors == "@as []" ]] && gsettings set org.gnome.shell enabled-extensions "['no-overview@fthx']"
+	# local factors=$(gsettings get org.gnome.shell enabled-extensions)
+	# local enabled=$([[ $factors == *"'no-overview@fthx'"* ]] && echo "true" || echo "false")
+	# [[ $enabled == "false" ]] && gsettings set org.gnome.shell enabled-extensions "${factors%]*}, 'no-overview@fthx']"
 
 	# Reboot system
 	sudo reboot --force
@@ -78,6 +81,20 @@ update_appearance() {
 	# Remove favorite apps
 	gsettings set org.gnome.shell favorite-apps "[]"
 
+	# Enable just-perfection extension
+	yay -S --needed --noconfirm gnome-shell-extension-just-perfection-desktop
+	local factors=$(gsettings get org.gnome.shell enabled-extensions)
+	[[ $factors == "@as []" ]] && gsettings set org.gnome.shell enabled-extensions "['just-perfection-desktop@just-perfection']"
+	local factors=$(gsettings get org.gnome.shell enabled-extensions)
+	local enabled=$([[ $factors == *"'just-perfection-desktop@just-perfection'"* ]] && echo "true" || echo "false")
+	[[ $enabled == "false" ]] && gsettings set org.gnome.shell enabled-extensions "${factors%]*}, 'just-perfection-desktop@just-perfection']"
+	dconf write /org/gnome/shell/disable-user-extensions false
+	dconf reset -f /org/gnome/shell/extensions/just-perfection/app-menu
+	dconf write /org/gnome/shell/extensions/just-perfection/app-menu false
+	dconf write /org/gnome/shell/extensions/just-perfection/background-menu false
+	dconf write /org/gnome/shell/extensions/just-perfection/startup-status 0
+	dconf write /org/gnome/shell/extensions/just-perfection/window-demands-attention-focus true
+
 }
 
 update_chromium() {
@@ -88,7 +105,7 @@ update_chromium() {
 
 	# Handle display bug on first install with some systems
 	local already=$([[ -d "$deposit" ]] && echo "true" || echo "false")
-    if [[ $already == "false" ]]; then mkdir -p "$deposit" && invoke_restart; fi
+	if [[ $already == "false" ]]; then mkdir -p "$deposit" && invoke_restart; fi
 
 	# Update dependencies
 	sudo pacman -S --needed --noconfirm curl jq ydotool
@@ -312,6 +329,19 @@ update_jdownloader() {
 
 }
 
+update_jetbra() {
+
+	# Forced to omit download for copyright reasons.
+	# Please download the archive from jetbra.in/s manually.
+	# Search ja-netfilter.jar and zhile.io for more information.
+	local archive="/tmp/jetbra.zip"
+
+	if [[ -f "$archive" ]]; then
+		return 0
+	fi
+
+}
+
 update_keepassxc() {
 
 	# Update package
@@ -360,11 +390,12 @@ update_system() {
 	sudo ln -s "/usr/share/zoneinfo/$country" "/etc/localtime"
 
 	# Update firmware
-	# sudo pacman -S --needed --noconfirm fwupd
-	# sudo fwupdmgr get-devices
-	# sudo fwupdmgr refresh --force
-	# sudo fwupdmgr get-updates
-	# sudo fwupdmgr update -y
+	sudo pacman -S --needed --noconfirm fwupd
+	sudo fwupdmgr get-devices -y
+	sudo fwupdmgr refresh --force
+	sudo fwupdmgr get-updates -y
+	sudo fwupdmgr refresh --force
+	sudo fwupdmgr update -y
 
 	# Update system
 	sudo pacman -Syyu --noconfirm
@@ -484,18 +515,15 @@ update_woeusb_ng() {
 
 main() {
 
-	clear
-
 	# Prompt password
-	# sudo -v && clear
+	sudo clear
 
 	# Remove timeouts
 	echo "Defaults timestamp_timeout=-1" | sudo tee "/etc/sudoers.d/disable_timeout" &>/dev/null
-	# sudo sed -i "s/# %sudo.*ALL=.*/%sudo ALL=(ALL) NOPASSWD:ALL/" "/etc/sudoers"
-	echo "$USER ALL=(ALL) NOPASSWD: ALL" | sudo tee -a "/etc/sudoers" &>/dev/null
+	# echo "$USER ALL=(ALL) NOPASSWD: ALL" | sudo tee -a "/etc/sudoers" &>/dev/null
 
 	# Change headline
-	printf "\033]0;%s\007" "archogen"
+	printf "\033]0;%s\007" "$(basename "$(readlink -f "${BASH_SOURCE[0]}")")"
 
 	# Output greeting
 	read -r -d "" welcome <<-EOD
@@ -518,37 +546,37 @@ main() {
 	rm -f "$HOME/.config/autostart/invoke_restart.desktop"
 
 	# Handle elements
-	members=(
-		# "update_appearance"
+	local members=(
+		"update_appearance"
 		"update_system 'Europe/Brussels' 'archogen'"
 		"update_git 'main' 'sharpordie' '72373746+sharpordie@users.noreply.github.com'"
 		"update_chromium"
-		# "update_vscode"
-		# "update_hashcat"
-		# "update_lutris"
-		# "update_jdownloader"
-		# "update_keepassxc"
-		# "update_pycharm_professional"
-		# "update_tinymediamanager"
-		# "update_vmware_workstation"
+		"update_vscode"
+		"update_hashcat"
+		"update_lutris"
+		"update_jdownloader"
+		"update_keepassxc"
+		"update_pycharm_professional"
+		"update_tinymediamanager"
+		"update_vmware_workstation"
 		# "update_waydroid"
-		# "update_wireshark"
-		# "update_woeusb_ng"
+		"update_wireshark"
+		"update_woeusb_ng"
 	)
 
 	# Output progress
-	maximum=$((${#welcome} / $(echo "$welcome" | wc -l)))
-	heading="\r%-"$((maximum - 20))"s   %-6s   %-8s\n\n"
-	loading="\r%-"$((maximum - 20))"s   \033[93mACTIVE\033[0m   %-8s\b"
-	failure="\r%-"$((maximum - 20))"s   \033[91mFAILED\033[0m   %-8s\n"
-	success="\r%-"$((maximum - 20))"s   \033[92mWORKED\033[0m   %-8s\n"
+	local maximum=$((${#welcome} / $(echo "$welcome" | wc -l)))
+	local heading="\r%-"$((maximum - 20))"s   %-6s   %-8s\n\n"
+	local loading="\r%-"$((maximum - 20))"s   \033[93mACTIVE\033[0m   %-8s\b"
+	local failure="\r%-"$((maximum - 20))"s   \033[91mFAILED\033[0m   %-8s\n"
+	local success="\r%-"$((maximum - 20))"s   \033[92mWORKED\033[0m   %-8s\n"
 	printf "$heading" "FUNCTION" "STATUS" "DURATION"
 	for element in "${members[@]}"; do
-		written=$(basename "$(echo "$element" | cut -d ' ' -f 1)" | tr "[:lower:]" "[:upper:]")
-		started=$(date +"%s") && printf "$loading" "$written" "--:--:--"
+		local written=$(basename "$(echo "$element" | cut -d ' ' -f 1)" | tr "[:lower:]" "[:upper:]")
+		local started=$(date +"%s") && printf "$loading" "$written" "--:--:--"
 		eval "$element" >/dev/null 2>&1 && current="$success" || current="$failure"
-		extinct=$(date +"%s") && elapsed=$((extinct - started))
-		elapsed=$(printf "%02d:%02d:%02d\n" $((elapsed / 3600)) $(((elapsed % 3600) / 60)) $((elapsed % 60)))
+		local extinct=$(date +"%s") && elapsed=$((extinct - started))
+		local elapsed=$(printf "%02d:%02d:%02d\n" $((elapsed / 3600)) $(((elapsed % 3600) / 60)) $((elapsed % 60)))
 		printf "$current" "$written" "$elapsed"
 	done
 
@@ -559,11 +587,10 @@ main() {
 
 	# Revert timeouts
 	sudo rm "/etc/sudoers.d/disable_timeout"
-	# sudo sed -i "s/%sudo.*ALL=.*/# %sudo ALL=(ALL:ALL) ALL/" "/etc/sudoers"
-	sudo sed -i "s/$USER ALL=.*$//" "/etc/sudoers"
+	# sudo sed -i "s/$USER ALL=.*$//" "/etc/sudoers"
 
 	# Output new line
-	printf "\n" && sleep 30
+	printf "\n"
 
 }
 
