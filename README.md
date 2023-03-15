@@ -17,8 +17,8 @@ wget -qO- https://raw.githubusercontent.com/sharpordie/archogen/main/src/archoge
 You can support my work by sending me some crypto.
 
 ```txt
-BTC: bc1qwy5uxjlmdmaps9yuumug779srt3g52mynzarzy
-BCH: qq4c94e9mh4gp5zzgxjknvvdfcmea73zycptwgl3zp
-BAT: 0xA6AeBFce98456a8d10B2609DbD3609015F80B20a
-ETH: 0x170D57ed547c153B21A7BA8aaB9a8fb53C5EAD5f
+BTC: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+BCH: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+BAT: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+ETH: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ```
