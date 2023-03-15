@@ -9,7 +9,8 @@ Opinionated post-installation script for Arch Linux.
 ### Launch script from terminal
 
 ```shell
-wget -qO- https://raw.githubusercontent.com/sharpordie/archogen/main/src/archogen.sh | bash
+address="https://raw.githubusercontent.com/sharpordie/archogen/main/src/archogen.sh"
+fetched="/$HOME/$(basename $address)" ; wget $address -O $fetched ; /usr/bin/bash $fetched
 ```
 
 # <samp>FUNDINGS</samp>

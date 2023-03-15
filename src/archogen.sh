@@ -525,12 +525,8 @@ update_woeusb_ng() {
 
 main() {
 
-	# Prompt password
-	sudo clear
-
-	# Remove timeouts
-	echo "Defaults timestamp_timeout=-1" | sudo tee "/etc/sudoers.d/disable_timeout" &>/dev/null
-	# echo "$USER ALL=(ALL) NOPASSWD: ALL" | sudo tee -a "/etc/sudoers" &>/dev/null
+	# Vanish terminal
+	clear
 
 	# Change headline
 	printf "\033]0;%s\007" "$(basename "$(readlink -f "${BASH_SOURCE[0]}")")"
@@ -545,6 +541,10 @@ main() {
 		╚═╝░░╚═╝╚═╝░░╚═╝░╚════╝░╚═╝░░╚═╝░╚════╝░░╚═════╝░╚══════╝╚═╝░░╚══╝
 	EOD
 	printf "\n\033[92m%s\033[00m\n\n" "$welcome"
+
+	# Remove timeouts
+	echo "Defaults timestamp_timeout=-1" | sudo tee "/etc/sudoers.d/disable_timeout" &>/dev/null
+	# echo "$USER ALL=(ALL) NOPASSWD: ALL" | sudo tee -a "/etc/sudoers" &>/dev/null
 
 	# Remove sleeping
 	gsettings set org.gnome.desktop.notifications show-banners false
