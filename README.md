@@ -10,8 +10,7 @@ Blindly executing this is strongly discouraged.
 
 ```shell
 address="https://raw.githubusercontent.com/sharpordie/archogen/main/src/archogen.sh"
-fetched="/$HOME/$(basename $address)"
-wget $address -O $fetched ; bash $fetched
+fetched="/$HOME/$(basename $address)" ; wget $address -O $fetched ; bash $fetched
 ```
 
 # <samp>FUNDINGS</samp>
