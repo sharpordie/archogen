@@ -552,8 +552,6 @@ main() {
 	rm -f "$HOME/.config/autostart/invoke_restart.desktop"
 	# sudo sed -i "s/AutomaticLoginEnable=.*/AutomaticLoginEnable=False/" "/etc/gdm/custom.conf"
 
-	echo "REBOOTING..." ; sleep 4 ; invoke_restart
-
 	# Handle elements
 	local members=(
 		"update_appearance"
