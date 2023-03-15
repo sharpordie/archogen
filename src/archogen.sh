@@ -95,6 +95,18 @@ update_appearance() {
 	dconf write /org/gnome/shell/extensions/just-perfection/startup-status 0
 	dconf write /org/gnome/shell/extensions/just-perfection/window-demands-attention-focus true
 
+	# Change backgrounds
+	yay -S --needed --noconfirm gdm-tools
+	local address="https://raw.githubusercontent.com/sharpordie/andpaper/main/src/android-bottom-darken.png"
+	local picture="$HOME/Pictures/Backgrounds/$(basename "$address")"
+	mkdir -p "$(dirname $picture)" && curl -L "$address" -o "$picture"
+	set-gdm-theme -s default "$picture"
+	gsettings set org.gnome.desktop.background picture-options "zoom"
+	gsettings set org.gnome.desktop.background picture-uri-dark "file://$picture"
+	gsettings set org.gnome.desktop.screensaver picture-options "zoom"
+	gsettings set org.gnome.desktop.screensaver picture-uri "file://$picture"
+
+
 }
 
 update_chromium() {
@@ -336,9 +348,7 @@ update_jetbra() {
 	# Search ja-netfilter.jar and zhile.io for more information.
 	local archive="/tmp/jetbra.zip"
 
-	if [[ -f "$archive" ]]; then
-		return 0
-	fi
+	if [[ -f "$archive" ]]; then return 0; fi
 
 }
 
@@ -544,6 +554,8 @@ main() {
 	# Remove rebooter
 	rm -f "$HOME/.config/autostart/invoke_restart.desktop"
 	# sudo sed -i "s/AutomaticLoginEnable=.*/AutomaticLoginEnable=False/" "/etc/gdm/custom.conf"
+
+	echo "REBOOTING..." ; sleep 10 ; invoke_restart
 
 	# Handle elements
 	local members=(
