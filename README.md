@@ -6,11 +6,12 @@ Opinionated post-installation script for Arch Linux.
 
 # <samp>GUIDANCE</samp>
 
-### Launch script from terminal
+Blindly executing this is strongly discouraged.
 
 ```shell
 address="https://raw.githubusercontent.com/sharpordie/archogen/main/src/archogen.sh"
-fetched="/$HOME/$(basename $address)" ; wget $address -O $fetched ; /usr/bin/bash $fetched
+fetched="/$HOME/$(basename $address)"
+wget $address -O $fetched ; bash $fetched
 ```
 
 # <samp>FUNDINGS</samp>
