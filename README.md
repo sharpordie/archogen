@@ -1,18 +1,26 @@
-<h1><samp>ARCHOGEN</samp></h1>
+# <samp>OVERVIEW</samp>
 
-Personal post-installation script for Arch Linux.
+Opinionated post-installation script for Arch Linux.
 
-<h2><samp>SUPPORTS</samp></h2>
+<img src="assets/img1.png" width="49.25%"/><img src="assets/img0.png" width="1.5%"/><img src="assets/img2.png" width="49.25%"/>
 
-<a href="../.." target="_blank"><img src="https://raw.githubusercontent.com/sharpordie/mybadges/main/src/kofi.svg" width="260"></a>
-
-<h2><samp>STARTING</samp></h2>
+# <samp>GUIDANCE</samp>
 
 ```
 wget -qO- https://raw.githubusercontent.com/sharpordie/archogen/main/src/archogen.sh | bash
 ```
-<h2><samp>SHOWCASE</samp></h2>
 
-<a href=""><img src="https://fakeimg.pl/852x480/000/fff/?text=‏‏‎ ‎" width="49.25%"/></a><a><img src="https://upload.wikimedia.org/wikipedia/commons/c/ca/1x1.png" width="1.5%"/></a><a href=""><img src="https://fakeimg.pl/852x480/000/fff/?text=‏‏‎ ‎" width="49.25%"/></a>  
-<a href=""><img src="https://fakeimg.pl/852x480/000/fff/?text=‏‏‎ ‎" width="49.25%"/></a><a><img src="https://upload.wikimedia.org/wikipedia/commons/c/ca/1x1.png" width="1.5%"/></a><a href=""><img src="https://fakeimg.pl/852x480/000/fff/?text=‏‏‎ ‎" width="49.25%"/></a>  
-<a href=""><img src="https://fakeimg.pl/852x480/000/fff/?text=‏‏‎ ‎" width="49.25%"/></a><a><img src="https://upload.wikimedia.org/wikipedia/commons/c/ca/1x1.png" width="1.5%"/></a><a href=""><img src="https://fakeimg.pl/852x480/000/fff/?text=‏‏‎ ‎" width="49.25%"/></a>
+# <samp>FUNDINGS</samp>
+
+You can support me on ko-fi.
+
+<a href="../.." target="_blank"><img src="https://raw.githubusercontent.com/sharpordie/mybadges/main/src/kofi.svg" width="260"></a>
+
+Or support my work by sending me some crypto.
+
+```
+BTC: bc1qwy5uxjlmdmaps9yuumug779srt3g52mynzarzy
+BCH: qq4c94e9mh4gp5zzgxjknvvdfcmea73zycptwgl3zp
+BAT: 0xA6AeBFce98456a8d10B2609DbD3609015F80B20a
+ETH: 0x170D57ed547c153B21A7BA8aaB9a8fb53C5EAD5f
+```

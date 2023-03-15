@@ -542,8 +542,8 @@ main() {
 	gsettings set org.gnome.desktop.session idle-delay 0
 
 	# Remove rebooter
-	sudo sed -i "s/AutomaticLoginEnable=.*/AutomaticLoginEnable=False/" "/etc/gdm/custom.conf"
 	rm -f "$HOME/.config/autostart/invoke_restart.desktop"
+	# sudo sed -i "s/AutomaticLoginEnable=.*/AutomaticLoginEnable=False/" "/etc/gdm/custom.conf"
 
 	# Handle elements
 	local members=(
