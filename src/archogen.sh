@@ -525,11 +525,8 @@ update_woeusb_ng() {
 
 main() {
 
-	# Vanish terminal
-	clear
-
 	# Change headline
-	printf "\033]0;%s\007" "$(basename "$(readlink -f "${BASH_SOURCE[0]}")")"
+	clear && printf "\033]0;%s\007" "$(basename "$(readlink -f "${BASH_SOURCE[0]}")")"
 
 	# Remove timeouts
 	echo "Defaults timestamp_timeout=-1" | sudo tee "/etc/sudoers.d/disable_timeout" &>/dev/null
@@ -544,7 +541,7 @@ main() {
 		██║░░██║██║░░██║╚█████╔╝██║░░██║╚█████╔╝╚██████╔╝███████╗██║░╚███║
 		╚═╝░░╚═╝╚═╝░░╚═╝░╚════╝░╚═╝░░╚═╝░╚════╝░░╚═════╝░╚══════╝╚═╝░░╚══╝
 	EOD
-	printf "\n\033[92m%s\033[00m\n\n" "$welcome"
+	clear && printf "\n\033[92m%s\033[00m\n\n" "$welcome"
 
 	# Remove sleeping
 	gsettings set org.gnome.desktop.notifications show-banners false
