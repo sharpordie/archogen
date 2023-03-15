@@ -6,17 +6,15 @@ Opinionated post-installation script for Arch Linux.
 
 # <samp>GUIDANCE</samp>
 
+### Launch script from terminal
+
 ```
 wget -qO- https://raw.githubusercontent.com/sharpordie/archogen/main/src/archogen.sh | bash
 ```
 
 # <samp>FUNDINGS</samp>
 
-You can support me on ko-fi.
-
-<a href="../.." target="_blank"><img src="https://raw.githubusercontent.com/sharpordie/mybadges/main/src/kofi.svg" width="260"></a>
-
-Or support my work by sending me some crypto.
+You can support my work by sending me some crypto.
 
 ```
 BTC: bc1qwy5uxjlmdmaps9yuumug779srt3g52mynzarzy
