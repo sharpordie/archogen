@@ -2,6 +2,9 @@
 
 invoke_restart() {
 
+	# Ensure gnome session
+    [[ "$XDG_SESSION_DESKTOP" == "gnome" ]] || return 1
+
 	# Enable automatic login
 	local configs="/etc/gdm/custom.conf"
 	local pattern="AutomaticLogin="
@@ -21,7 +24,7 @@ invoke_restart() {
 	echo "X-GNOME-Autostart-enabled=true" >>"$startup"
 	echo "Name=archogen" >>"$startup"
 
-	# Enable no-overview
+	# Enable no-overview extension
 	yay -S --needed --noconfirm gnome-shell-extension-no-overview
 	local factors=$(gsettings get org.gnome.shell enabled-extensions)
 	[[ $factors == "@as []" ]] && gsettings set org.gnome.shell enabled-extensions "['no-overview@fthx']"
@@ -29,20 +32,20 @@ invoke_restart() {
 	local enabled=$([[ $factors == *"'no-overview@fthx'"* ]] && echo "true" || echo "false")
 	[[ $enabled == "false" ]] && gsettings set org.gnome.shell enabled-extensions "${factors%]*}, 'no-overview@fthx']"
 
-	# Reboot the system
+	# Reboot system
 	sudo reboot --force
 
 }
 
 update_appearance() {
 
-	# Enable night-light
+	# Enable night light
 	gsettings set org.gnome.settings-daemon.plugins.color night-light-enabled true
 	gsettings set org.gnome.settings-daemon.plugins.color night-light-schedule-from 0
 	gsettings set org.gnome.settings-daemon.plugins.color night-light-schedule-to 0
 	gsettings set org.gnome.settings-daemon.plugins.color night-light-temperature 4000
 
-	# Change color-theme
+	# Change color theme
 	gsettings set org.gnome.desktop.interface color-scheme "prefer-dark"
 	gsettings set org.gnome.desktop.interface gtk-theme "Adwaita-dark"
 
@@ -58,21 +61,21 @@ update_appearance() {
 	gsettings set org.gnome.desktop.interface font-antialiasing "rgba"
 	gsettings set org.gnome.desktop.interface font-hinting "slight"
 
-	# Change windows layout
+	# Change button layout
 	gsettings set org.gnome.desktop.wm.preferences button-layout ":minimize,maximize,close"
 
-	# Change icon-theme
+	# Change icon theme
 	sudo pacman -S --needed --noconfirm papirus-icon-theme
 	gsettings set org.gnome.desktop.interface icon-theme "Papirus-Dark"
 
-	# Change folder-theme
+	# Change folder theme
 	yay -S --needed --noconfirm papirus-folders
 	sudo papirus-folders --color yaru --theme Papirus-Dark
 
-	# Remove event-sounds
+	# Remove event sounds
 	gsettings set org.gnome.desktop.sound event-sounds false
 
-	# Remove favorites
+	# Remove favorite apps
 	gsettings set org.gnome.shell favorite-apps "[]"
 
 }
@@ -82,6 +85,10 @@ update_chromium() {
 	# Handle parameters
 	local deposit=${1:-$HOME/Downloads/DDL}
 	local startup=${2:-about:blank}
+
+	# Handle display bug on first install with some systems
+	local already=$([[ -d "$deposit" ]] && echo "true" || echo "false")
+    if [[ $already == "false" ]]; then mkdir -p "$deposit" && invoke_restart; fi
 
 	# Update dependencies
 	sudo pacman -S --needed --noconfirm curl jq ydotool
@@ -97,7 +104,7 @@ update_chromium() {
 	if [[ "$present" == "false" ]]; then
 		# Launch chromium
 		sleep 1 && (sudo ydotoold &) &>/dev/null
-		sleep 1 && (chromium &) &>/dev/null
+		sleep 1 && (chromium --lang=en --start-maximized &) &>/dev/null
 		sleep 4 && sudo ydotool key 125:1 103:1 103:0 125:0
 
 		# Change deposit
@@ -110,14 +117,14 @@ update_chromium() {
 		sleep 1 && sudo ydotool key 29:1 38:1 38:0 29:0 && sleep 1 && sudo ydotool type "$deposit" && sleep 1 && sudo ydotool key 28:1 28:0
 		sleep 1 && sudo ydotool key 15:1 15:0 && sleep 1 && sudo ydotool key 28:1 28:0
 
-		# Change engine
+		# Change search engine
 		sleep 1 && sudo ydotool key 29:1 38:1 38:0 29:0
 		sleep 1 && sudo ydotool type "chrome://settings/" && sleep 1 && sudo ydotool key 28:1 28:0
 		sleep 1 && sudo ydotool type "search engines" && sleep 1 && sudo ydotool key 28:1 28:0
 		sleep 1 && for i in $(seq 1 3); do sleep 0.5 && sudo ydotool key 15:1 15:0; done && sleep 1 && sudo ydotool key 28:1 28:0
 		sleep 1 && sudo ydotool type "duckduckgo" && sleep 1 && sudo ydotool key 28:1 28:0
 
-		# Change custom-ntp
+		# Change custom-ntp flag
 		sleep 1 && sudo ydotool key 29:1 38:1 38:0 29:0
 		sleep 1 && sudo ydotool type "chrome://flags/" && sleep 1 && sudo ydotool key 28:1 28:0
 		sleep 1 && sudo ydotool type "custom-ntp" && sleep 1 && sudo ydotool key 28:1 28:0
@@ -126,61 +133,61 @@ update_chromium() {
 		sleep 1 && for i in $(seq 1 2); do sleep 0.5 && sudo ydotool key 15:1 15:0; done && sleep 1 && sudo ydotool key 28:1 28:0
 		sleep 1 && sudo ydotool key 108:1 108:0 && sleep 1 && sudo ydotool key 28:1 28:0
 
-		# Change disable-sharing-hub
+		# Change disable-sharing-hub flag
 		sleep 1 && sudo ydotool key 29:1 38:1 38:0 29:0
 		sleep 1 && sudo ydotool type "chrome://flags/" && sleep 1 && sudo ydotool key 28:1 28:0
 		sleep 1 && sudo ydotool type "disable-sharing-hub" && sleep 1 && sudo ydotool key 28:1 28:0
 		sleep 1 && for i in $(seq 1 6); do sleep 0.5 && sudo ydotool key 15:1 15:0; done && sleep 1 && sudo ydotool key 28:1 28:0
 		sleep 1 && sudo ydotool key 108:1 108:0 && sleep 1 && sudo ydotool key 28:1 28:0
 
-		# Change extension-mime-request-handling
+		# Change extension-mime-request-handling flag
 		sleep 1 && sudo ydotool key 29:1 38:1 38:0 29:0
 		sleep 1 && sudo ydotool type "chrome://flags/" && sleep 1 && sudo ydotool key 28:1 28:0
 		sleep 1 && sudo ydotool type "extension-mime-request-handling" && sleep 1 && sudo ydotool key 28:1 28:0
 		sleep 1 && for i in $(seq 1 6); do sleep 0.5 && sudo ydotool key 15:1 15:0; done && sleep 1 && sudo ydotool key 28:1 28:0
 		sleep 1 && for i in $(seq 1 2); do sleep 0.5 && sudo ydotool key 108:1 108:0; done && sleep 1 && sudo ydotool key 28:1 28:0
 
-		# Change hide-sidepanel-button
+		# Change hide-sidepanel-button flag
 		sleep 1 && sudo ydotool key 29:1 38:1 38:0 29:0
 		sleep 1 && sudo ydotool type "chrome://flags/" && sleep 1 && sudo ydotool key 28:1 28:0
 		sleep 1 && sudo ydotool type "hide-sidepanel-button" && sleep 1 && sudo ydotool key 28:1 28:0
 		sleep 1 && for i in $(seq 1 6); do sleep 0.5 && sudo ydotool key 15:1 15:0; done && sleep 1 && sudo ydotool key 28:1 28:0
 		sleep 1 && sudo ydotool key 108:1 108:0 && sleep 1 && sudo ydotool key 28:1 28:0
 
-		# Change remove-tabsearch-button
+		# Change remove-tabsearch-button flag
 		sleep 1 && sudo ydotool key 29:1 38:1 38:0 29:0
 		sleep 1 && sudo ydotool type "chrome://flags/" && sleep 1 && sudo ydotool key 28:1 28:0
 		sleep 1 && sudo ydotool type "remove-tabsearch-button" && sleep 1 && sudo ydotool key 28:1 28:0
 		sleep 1 && for i in $(seq 1 6); do sleep 0.5 && sudo ydotool key 15:1 15:0; done && sleep 1 && sudo ydotool key 28:1 28:0
 		sleep 1 && sudo ydotool key 108:1 108:0 && sleep 1 && sudo ydotool key 28:1 28:0
 
-		# Change show-avatar-button
+		# Change show-avatar-button flag
 		sleep 1 && sudo ydotool key 29:1 38:1 38:0 29:0
 		sleep 1 && sudo ydotool type "chrome://flags/" && sleep 1 && sudo ydotool key 28:1 28:0
 		sleep 1 && sudo ydotool type "show-avatar-button" && sleep 1 && sudo ydotool key 28:1 28:0
 		sleep 1 && for i in $(seq 1 6); do sleep 0.5 && sudo ydotool key 15:1 15:0; done && sleep 1 && sudo ydotool key 28:1 28:0
 		sleep 1 && for i in $(seq 1 3); do sleep 0.5 && sudo ydotool key 108:1 108:0; done && sleep 1 && sudo ydotool key 28:1 28:0
 
-		# Toggle bookmark bar (ctr+shift+b)
+		# Toggle bookmark bar
 		sleep 4 && sudo ydotool key 29:1 42:1 48:1 48:0 42:0 29:0
 
 		# Finish chromium
 		sleep 4 && sudo ydotool key 56:1 62:1 62:0 56:0
 
-		# Update chromium-web-store
+		# Update chromium-web-store extension
 		local adjunct="NeverDecaf/chromium-web-store"
 		local address="https://api.github.com/repos/$adjunct/releases/latest"
 		local version=$(curl -LA "mozilla/5.0" "$address" | jq -r ".tag_name" | tr -d "v")
 		update_chromium_extension "https://github.com/$adjunct/releases/download/v$version/Chromium.Web.Store.crx"
 
-		# Update extensions
+		# Update some extensions
 		update_chromium_extension "bcjindcccaagfpapjjmafapmmgkkhgoa" # json-formatter
 		update_chromium_extension "ibplnjkanclpjokhdolnendpplpjiace" # simple-translate
 		update_chromium_extension "mnjggcdmjocbbbhaepdhchncahnbgone" # sponsorblock-for-youtube
 		update_chromium_extension "cjpalhdlnbpafiamejdnhcphjbkeiagm" # ublock-origin
 	fi
 
-	# Update bypass-paywalls-chrome-clean
+	# Update bypass-paywalls-chrome-clean extension
 	local address="https://gitlab.com/magnolia1234/bypass-paywalls-chrome-clean"
 	local address="$address/-/archive/master/bypass-paywalls-chrome-clean-master.zip"
 	update_chromium_extension "$address"
@@ -197,7 +204,6 @@ update_chromium_extension() {
 
 	# Update extension
 	if [[ -x $(command -v chromium) ]]; then
-		pkill chromium
 		if [[ "$payload" == http* ]]; then
 			local address="$payload"
 			local package="$(mktemp -d)/$(basename "$address")"
@@ -362,13 +368,6 @@ update_system() {
 
 	# Update system
 	sudo pacman -Syyu --noconfirm
-
-	# Reboot if latest reboot was done less than three minutes ago
-	local current=$(date -d "$(uptime --since)" +"%s")
-	local maximum=$(date -d "1 minutes ago" +"%s")
-	local correct=$([[ $maximum -lt $current ]] && echo "false" || echo "true")
-	# local correct="true"
-	if [[ $correct == "true" ]]; then invoke_restart; fi
 
 }
 
