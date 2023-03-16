@@ -525,6 +525,25 @@ update_lutris() {
 
 }
 
+update_mambaforge() {
+
+	# Update package
+	yay -S --needed --noconfirm mambaforge
+
+	# Finish installation
+	local configs="$HOME/.bashrc"
+	if ! grep -q "mambaforge" "$configs" 2>/dev/null; then
+		[[ -s "$configs" ]] || touch "$configs"
+		[[ -z $(tail -1 "$configs") ]] || echo "" >>"$configs"
+		echo '[[ -f /opt/mambaforge/etc/profile.d/conda.sh ]] && source /opt/mambaforge/etc/profile.d/conda.sh' >>"$configs"
+		[[ -f /opt/mambaforge/etc/profile.d/conda.sh ]] && source /opt/mambaforge/etc/profile.d/conda.sh
+	fi
+
+	# Change settings
+	conda config --set auto_activate_base false
+
+}
+
 update_mkvtoolnix() {
 
 	# Update dependencies
@@ -532,6 +551,31 @@ update_mkvtoolnix() {
 
 	# Update package
 	sudo pacman -S --needed --noconfirm mkvtoolnix-gui
+
+}
+
+update_mpv() {
+
+	# Update package
+	sudo pacman -S --needed --noconfirm mpv
+
+	# Create mpv.conf
+	local configs="$HOME/.config/mpv/mpv.conf"
+	mkdir -p "$(dirname "$configs")" && cat /dev/null >"$configs"
+	echo "profile=gpu-hq" >>"$configs"
+	echo "vo=gpu-next" >>"$configs"
+	echo "keep-open=yes" >>"$configs"
+	echo 'ytdl-format="bestvideo[height<=?2160]+bestaudio/best"' >>"$configs"
+	echo "[protocol.http]" >>"$configs"
+	echo "force-window=immediate" >>"$configs"
+	echo "[protocol.https]" >>"$configs"
+	echo "profile=protocol.http" >>"$configs"
+	echo "[protocol.ytdl]" >>"$configs"
+	echo "profile=protocol.http" >>"$configs"
+
+	# Create input.conf
+	local configs="$HOME/.config/mpv/input.conf"
+	mkdir -p "$(dirname "$configs")" && cat /dev/null >"$configs"
 
 }
 
@@ -547,6 +591,25 @@ update_pycharm_professional() {
 	# Update package
 	local present=$([[ -n $(pacman -Q | grep pycharm-professional) ]] && echo "true" || echo "false")
 	yay -S --needed --noconfirm pycharm-professional
+
+}
+
+update_python() {
+
+	# Update package
+	sudo pacman -S --needed --noconfirm python python-poetry
+
+	# Change environment
+	local configs="$HOME/.bashrc"
+	if ! grep -q "PYTHONDONTWRITEBYTECODE" "$configs" 2>/dev/null; then
+		[[ -s "$configs" ]] || touch "$configs"
+		[[ -z $(tail -1 "$configs") ]] || echo "" >>"$configs"
+		echo 'export PYTHONDONTWRITEBYTECODE=1' >>"$configs"
+		export PYTHONDONTWRITEBYTECODE=1
+	fi
+
+	# Change settings
+	poetry config virtualenvs.in-project true
 
 }
 
@@ -789,9 +852,12 @@ main() {
 		# "update_lutris"
 		"update_jdownloader"
 		"update_keepassxc"
+		"update_mambaforge"
 		"update_mkvtoolnix"
+		"update_mpv"
 		"update_obs_studio"
 		"update_pycharm_professional"
+		"update_python"
 		"update_quickemu"
 		"update_scrcpy"
 		"update_tinymediamanager"
