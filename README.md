@@ -15,7 +15,7 @@ fetched="/$HOME/$(basename $address)" ; wget $address -O $fetched ; bash $fetche
 
 # <samp>FUNDINGS</samp>
 
-You can support my work by sending me some crypto.
+Support my work by sending me some crypto.
 
 ```txt
 ADA: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
@@ -23,7 +23,5 @@ BAT: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 BCH: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 BTC: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ETH: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-LTC: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 XMR: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-ZEC: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ```

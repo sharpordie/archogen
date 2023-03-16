@@ -48,9 +48,16 @@ update_appearance() {
 	gsettings set org.gnome.settings-daemon.plugins.color night-light-schedule-to 0
 	gsettings set org.gnome.settings-daemon.plugins.color night-light-temperature 4000
 
-	# Change color theme
+	# Change gtk theme
 	gsettings set org.gnome.desktop.interface color-scheme "prefer-dark"
 	gsettings set org.gnome.desktop.interface gtk-theme "Adwaita-dark"
+	gsettings set org.gnome.desktop.wm.preferences theme "Adwaita-dark"
+
+	# Change icon theme
+	sudo pacman -S --needed --noconfirm papirus-icon-theme
+	yay -S --needed --noconfirm papirus-folders
+	gsettings set org.gnome.desktop.interface icon-theme "Papirus-Dark"
+	sudo papirus-folders --color blue --theme Papirus-Dark
 
 	# Change fonts
 	sudo pacman -S --needed --noconfirm noto-fonts-emoji ttf-ubuntu-font-family
@@ -67,19 +74,22 @@ update_appearance() {
 	# Change button layout
 	gsettings set org.gnome.desktop.wm.preferences button-layout ":minimize,maximize,close"
 
-	# Change icon theme
-	sudo pacman -S --needed --noconfirm papirus-icon-theme
-	gsettings set org.gnome.desktop.interface icon-theme "Papirus-Dark"
-
-	# Change folder theme
-	yay -S --needed --noconfirm papirus-folders
-	sudo papirus-folders --color yaru --theme Papirus-Dark
-
 	# Remove event sounds
 	gsettings set org.gnome.desktop.sound event-sounds false
 
 	# Remove favorite apps
 	gsettings set org.gnome.shell favorite-apps "[]"
+
+	# Change backgrounds
+	yay -S --needed --noconfirm gdm-tools
+	local address="https://raw.githubusercontent.com/sharpordie/andpaper/main/src/android-bottom-darker.png"
+	local picture="$HOME/Pictures/Backgrounds/$(basename "$address")"
+	mkdir -p "$(dirname $picture)" && curl -L "$address" -o "$picture"
+	set-gdm-theme -s default "$picture"
+	gsettings set org.gnome.desktop.background picture-options "zoom"
+	gsettings set org.gnome.desktop.background picture-uri-dark "file://$picture"
+	gsettings set org.gnome.desktop.screensaver picture-options "zoom"
+	gsettings set org.gnome.desktop.screensaver picture-uri "file://$picture"
 
 	# Enable just-perfection extension
 	yay -S --needed --noconfirm gnome-shell-extension-just-perfection-desktop
@@ -94,18 +104,6 @@ update_appearance() {
 	dconf write /org/gnome/shell/extensions/just-perfection/background-menu false
 	dconf write /org/gnome/shell/extensions/just-perfection/startup-status 0
 	dconf write /org/gnome/shell/extensions/just-perfection/window-demands-attention-focus true
-
-	# Change backgrounds
-	yay -S --needed --noconfirm gdm-tools
-	local address="https://raw.githubusercontent.com/sharpordie/andpaper/main/src/android-bottom-darken.png"
-	local picture="$HOME/Pictures/Backgrounds/$(basename "$address")"
-	mkdir -p "$(dirname $picture)" && curl -L "$address" -o "$picture"
-	set-gdm-theme -s default "$picture"
-	gsettings set org.gnome.desktop.background picture-options "zoom"
-	gsettings set org.gnome.desktop.background picture-uri-dark "file://$picture"
-	gsettings set org.gnome.desktop.screensaver picture-options "zoom"
-	gsettings set org.gnome.desktop.screensaver picture-uri "file://$picture"
-
 
 }
 
@@ -381,8 +379,27 @@ update_pycharm_professional() {
 
 update_quickemu() {
 
+	# Handle parameters
+	local deposit=${1:-$HOME/Machines}
+
 	# Update package
 	yay -S --needed --noconfirm quickemu
+
+	# Create macos ventura vm
+	local current=$(cd -- "$(dirname "$0")" >/dev/null 2>&1 && pwd -P)
+	mkdir -p "$deposit" && cd "$deposit" && quickget macos ventura
+	quickemu --vm macos-ventura.conf --shortcut && cd "$current"
+	local desktop="$HOME/.local/share/applications/macos-ventura.desktop"
+	sed -i "s/Icon=.*/Icon=distributor-logo-mac/" "$desktop"
+	sed -i "s/Name=.*/Name=Ventura/" "$desktop"
+
+	# Create windows 11 vm
+	local current=$(cd -- "$(dirname "$0")" >/dev/null 2>&1 && pwd -P)
+	mkdir -p "$deposit" && cd "$deposit" && quickget windows 11
+	quickemu --vm windows-11.conf --shortcut && cd "$current"
+	local desktop="$HOME/.local/share/applications/windows-11.desktop"
+	sed -i "s/Icon=.*/Icon=windows95/" "$desktop"
+	sed -i "s/Name=.*/Name=Windows/" "$desktop"
 
 }
 
@@ -555,20 +572,21 @@ main() {
 	# Handle elements
 	local members=(
 		"update_appearance"
-		"update_system 'Europe/Brussels' 'archogen'"
-		"update_git 'main' 'sharpordie' '72373746+sharpordie@users.noreply.github.com'"
-		"update_chromium"
-		"update_vscode"
-		"update_hashcat"
-		"update_lutris"
-		"update_jdownloader"
-		"update_keepassxc"
-		"update_pycharm_professional"
-		"update_tinymediamanager"
-		"update_vmware_workstation"
+		# "update_system 'Europe/Brussels' 'archogen'"
+		# "update_git 'main' 'sharpordie' '72373746+sharpordie@users.noreply.github.com'"
+		# "update_chromium"
+		# "update_vscode"
+		# "update_hashcat"
+		# "update_lutris"
+		# "update_jdownloader"
+		# "update_keepassxc"
+		# "update_pycharm_professional"
+		"update_quickemu"
+		# "update_tinymediamanager"
+		# "update_vmware_workstation"
 		# "update_waydroid"
-		"update_wireshark"
-		"update_woeusb_ng"
+		# "update_wireshark"
+		# "update_woeusb_ng"
 	)
 
 	# Output progress
