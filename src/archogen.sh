@@ -40,6 +40,66 @@ invoke_restart() {
 
 }
 
+update_android_cmdline() {
+
+	# Update dependencies
+	sudo pacman -S --needed --noconfirm curl jdk-openjdk
+
+	# Update package
+	local sdkroot="$HOME/Android/Sdk"
+	local deposit="$sdkroot/cmdline-tools"
+	if [[ ! -d "$deposit" ]]; then
+		! grep -q "Android" "$HOME/.hidden" 2>/dev/null && echo "Android" >>"$HOME/.hidden"
+		local address="https://developer.android.com/studio#command-tools"
+		local version="$(curl -s "$address" | grep -oP "commandlinetools-linux-\K(\d+)" | head -1)"
+		local address="https://dl.google.com/android/repository/commandlinetools-linux-${version}_latest.zip"
+		local archive="$(mktemp -d)/$(basename "$address")"
+		curl -LA "mozilla/5.0" "$address" -o "$archive"
+		mkdir -p "$deposit" && unzip -d "$deposit" "$archive"
+		yes | "$deposit/cmdline-tools/bin/sdkmanager" --sdk_root="$sdkroot" "cmdline-tools;latest"
+		rm -rf "$deposit/cmdline-tools"
+	fi
+
+	# Change environment
+	local configs="$HOME/.bashrc"
+	if ! grep -q "ANDROID_HOME" "$configs" 2>/dev/null; then
+		[[ -s "$configs" ]] || touch "$configs"
+		[[ -z $(tail -1 "$configs") ]] || echo "" >>"$configs"
+		echo 'export ANDROID_HOME="$HOME/Android/Sdk"' >>"$configs"
+		echo 'export PATH="$PATH:$ANDROID_HOME/cmdline-tools/latest/bin"' >>"$configs"
+		echo 'export PATH="$PATH:$ANDROID_HOME/emulator"' >>"$configs"
+		echo 'export PATH="$PATH:$ANDROID_HOME/platform-tools"' >>"$configs"
+		export ANDROID_HOME="$HOME/Android/Sdk"
+		export PATH="$PATH:$ANDROID_HOME/cmdline-tools/latest/bin"
+		export PATH="$PATH:$ANDROID_HOME/emulator"
+		export PATH="$PATH:$ANDROID_HOME/platform-tools"
+	fi
+
+}
+
+update_android_studio() {
+
+	# Update package
+	local present=$([[ -n $(pacman -Q | grep android-studio) ]] && echo "true" || echo "false")
+	yay -S --needed --noconfirm android-studio
+
+	# Finish installation
+	if [[ "$present" == "false" ]]; then
+		update_android_cmdline
+		yes | sdkmanager "build-tools;33.0.2"
+		yes | sdkmanager "emulator"
+		yes | sdkmanager "patcher;v4"
+		yes | sdkmanager "platform-tools"
+		yes | sdkmanager "platforms;android-33"
+		yes | sdkmanager "platforms;android-33-ext5"
+		yes | sdkmanager "sources;android-33"
+		yes | sdkmanager "system-images;android-33;google_apis;x86_64"
+		yes | sdkmanager --licenses
+		yes | sdkmanager --update
+	fi
+
+}
+
 update_appearance() {
 
 	# Enable night light
@@ -126,6 +186,16 @@ update_chromium() {
 
 	# Change default browser
 	xdg-settings set default-web-browser "chromium.desktop"
+	sudo sed -i "s/BROWSER=.*/BROWSER=chromium/" "/etc/environment"
+
+	# Change environment
+	local configs="$HOME/.bashrc"
+	if ! grep -q "CHROME_EXECUTABLE" "$configs" 2>/dev/null; then
+		[[ -s "$configs" ]] || touch "$configs"
+		[[ -z $(tail -1 "$configs") ]] || echo "" >>"$configs"
+		echo 'export CHROME_EXECUTABLE="/usr/bin/chromium"' >>"$configs"
+		export CHROME_EXECUTABLE="/usr/bin/chromium"
+	fi
 
 	# Finish installation
 	if [[ "$present" == "false" ]]; then
@@ -271,6 +341,54 @@ update_chromium_extension() {
 
 }
 
+update_flutter() {
+
+	# # Update package
+	# local present=$([[ -n $(pacman -Q | grep flutter) ]] && echo "true" || echo "false")
+	# yay -S --needed --noconfirm flutter
+
+	# # Finish installation
+	# source /etc/profile
+	# yes | flutter doctor --android-licenses
+
+	# Update package
+	local deposit="$HOME/Android/Flutter"
+	mkdir -p "$deposit"
+	git clone "https://github.com/flutter/flutter.git" -b stable "$deposit"
+
+	# Change environment
+	local configs="$HOME/.bashrc"
+	if ! grep -q "Flutter" "$configs" 2>/dev/null; then
+		[[ -s "$configs" ]] || touch "$configs"
+		[[ -z $(tail -1 "$configs") ]] || echo "" >>"$configs"
+		echo 'export PATH="$PATH:$HOME/Android/Flutter/bin"' >>"$configs"
+		export PATH="$PATH:$HOME/Android/Flutter/bin"
+	fi
+
+	# Finish installation
+	flutter channel stable
+	flutter upgrade
+	dart --disable-analytics
+	flutter config --no-analytics
+	yes | flutter doctor --android-licenses
+
+	# Update android-studio plugins
+	local product=$(find /opt/android-* -maxdepth 0 2>/dev/null | sort -r | head -1)
+	update_jetbrains_plugin "$product" "6351"  # dart
+	update_jetbrains_plugin "$product" "9212"  # flutter
+	update_jetbrains_plugin "$product" "13666" # flutter-intl
+	update_jetbrains_plugin "$product" "14641" # flutter-riverpod-snippets
+
+	# Update vscode extensions
+	update_vscode_extension "alexisvt.flutter-snippets"
+	update_vscode_extension "dart-code.flutter"
+	update_vscode_extension "pflannery.vscode-versionlens"
+	update_vscode_extension "RichardCoutts.mvvm-plus"
+	update_vscode_extension "robert-brunhage.flutter-riverpod-snippets"
+	update_vscode_extension "usernamehw.errorlens"
+
+}
+
 update_git() {
 
 	# Handle parameters
@@ -344,9 +462,44 @@ update_jetbra() {
 	# Forced to omit download for copyright reasons.
 	# Please download the archive from jetbra.in/s manually.
 	# Search ja-netfilter.jar and zhile.io for more information.
-	local archive="/tmp/jetbra.zip"
+	local archive=${1:-/tmp/jetbra.zip}
+	local deposit=${2:-/$HOME/.jetbra}
 
 	if [[ -f "$archive" ]]; then return 0; fi
+
+}
+
+update_jetbrains_plugin() {
+
+	# Handle parameters
+	local deposit=${1:-/opt/android-studio}
+	local element=${2}
+
+	# Update dependencies
+	[[ -d "$deposit" && -n "$element" ]] || return 0
+	sudo pacman -S --needed --noconfirm curl dpkg jq
+
+	# Update plugin
+	local release=$(cat "$deposit/product-info.json" | jq -r ".buildNumber" | grep -oP "(\d.+)")
+	local datadir=$(cat "$deposit/product-info.json" | jq -r ".dataDirectoryName")
+	local adjunct=$([[ $datadir == "AndroidStudio"* ]] && echo "Google/$datadir" || echo "JetBrains/$datadir")
+	local plugins="$HOME/.local/share/$adjunct" && mkdir -p "$plugins"
+	for i in {1..3}; do
+		for j in {0..19}; do
+			local address="https://plugins.jetbrains.com/api/plugins/$element/updates?page=$i"
+			local maximum=$(curl -s "$address" | jq ".[$j].until" | tr -d '"' | sed "s/\.\*/\.9999/")
+			local minimum=$(curl -s "$address" | jq ".[$j].since" | tr -d '"' | sed "s/\.\*/\.9999/")
+			if dpkg --compare-versions "${minimum:-0000}" "le" "$release" && dpkg --compare-versions "$release" "le" "${maximum:-9999}"; then
+				local address=$(curl -s "$address" | jq ".[$j].file" | tr -d '"')
+				local address="https://plugins.jetbrains.com/files/$address"
+				local archive="$(mktemp -d)/$(basename "$address")"
+				curl -LA "mozilla/5.0" "$address" -o "$archive"
+				unzip -o "$archive" -d "$plugins"
+				break 2
+			fi
+			sleep 1
+		done
+	done
 
 }
 
@@ -400,6 +553,13 @@ update_quickemu() {
 	local desktop="$HOME/.local/share/applications/windows-11.desktop"
 	sed -i "s/Icon=.*/Icon=windows95/" "$desktop"
 	sed -i "s/Name=.*/Name=Windows/" "$desktop"
+
+}
+
+update_scrcpy() {
+
+	# Update package
+	sudo pacman -S --needed --noconfirm scrcpy
 
 }
 
@@ -480,6 +640,9 @@ update_vscode() {
 	# Update package
 	yay -S --needed --noconfirm visual-studio-code-bin
 
+	# Change default editor
+	sudo sed -i "s/EDITOR=.*/EDITOR=code/" "/etc/environment"
+
 	# Update extensions
 	update_vscode_extension "bierner.markdown-preview-github-styles"
 	update_vscode_extension "foxundermoon.shell-format"
@@ -496,6 +659,16 @@ update_vscode() {
 	jq '."update.mode" = "none"' "$configs" | sponge "$configs"
 	jq '."window.menuBarVisibility" = "toggle"' "$configs" | sponge "$configs"
 	jq '."workbench.colorTheme" = "GitHub Dark Default"' "$configs" | sponge "$configs"
+
+}
+
+update_vscode_extension() {
+
+	# Handle parameters
+	local payload=${1}
+
+	# Update extension
+	code --install-extension "$payload" --force &>/dev/null || true
 
 }
 
@@ -572,20 +745,24 @@ main() {
 	# Handle elements
 	local members=(
 		"update_appearance"
-		# "update_system 'Europe/Brussels' 'archogen'"
-		# "update_git 'main' 'sharpordie' '72373746+sharpordie@users.noreply.github.com'"
-		# "update_chromium"
-		# "update_vscode"
-		# "update_hashcat"
+		"update_system 'Europe/Brussels' 'archogen'"
+		"update_android_cmdline"
+		"update_android_studio"
+		"update_git 'main' 'sharpordie' '72373746+sharpordie@users.noreply.github.com'"
+		"update_chromium"
+		"update_vscode"
+		"update-flutter"
+		"update_hashcat"
 		# "update_lutris"
-		# "update_jdownloader"
-		# "update_keepassxc"
-		# "update_pycharm_professional"
+		"update_jdownloader"
+		"update_keepassxc"
+		"update_pycharm_professional"
 		"update_quickemu"
+		"update_scrcpy"
 		# "update_tinymediamanager"
 		# "update_vmware_workstation"
 		# "update_waydroid"
-		# "update_wireshark"
+		"update_wireshark"
 		# "update_woeusb_ng"
 	)
 
