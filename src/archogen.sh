@@ -26,15 +26,6 @@ invoke_restart() {
 	echo "X-GNOME-Autostart-enabled=true" >>"$startup"
 	echo "Name=archogen" >>"$startup"
 
-	# TODO: Remove if using other extension with similar feature
-	# Enable no-overview extension
-	# yay -S --needed --noconfirm gnome-shell-extension-no-overview
-	# local factors=$(gsettings get org.gnome.shell enabled-extensions)
-	# [[ $factors == "@as []" ]] && gsettings set org.gnome.shell enabled-extensions "['no-overview@fthx']"
-	# local factors=$(gsettings get org.gnome.shell enabled-extensions)
-	# local enabled=$([[ $factors == *"'no-overview@fthx'"* ]] && echo "true" || echo "false")
-	# [[ $enabled == "false" ]] && gsettings set org.gnome.shell enabled-extensions "${factors%]*}, 'no-overview@fthx']"
-
 	# Reboot system
 	sudo reboot --force
 
@@ -113,6 +104,31 @@ update_appearance() {
 	gsettings set org.gnome.desktop.interface gtk-theme "Adwaita-dark"
 	gsettings set org.gnome.desktop.wm.preferences theme "Adwaita-dark"
 
+	# Change backgrounds
+	yay -S --needed --noconfirm gdm-tools
+	local address="https://raw.githubusercontent.com/sharpordie/andpaper/main/src/android-bottom-darker.png"
+	local picture="$HOME/Pictures/Backgrounds/$(basename "$address")"
+	mkdir -p "$(dirname $picture)" && curl -L "$address" -o "$picture"
+	set-gdm-theme -s default "$picture"
+	gsettings set org.gnome.desktop.background picture-options "zoom"
+	gsettings set org.gnome.desktop.background picture-uri-dark "file://$picture"
+	gsettings set org.gnome.desktop.screensaver picture-options "zoom"
+	gsettings set org.gnome.desktop.screensaver picture-uri "file://$picture"
+
+	# Enable just-perfection extension
+	yay -S --needed --noconfirm gnome-shell-extension-just-perfection-desktop
+	local factors=$(gsettings get org.gnome.shell enabled-extensions)
+	[[ $factors == "@as []" ]] && gsettings set org.gnome.shell enabled-extensions "['just-perfection-desktop@just-perfection']"
+	local factors=$(gsettings get org.gnome.shell enabled-extensions)
+	local enabled=$([[ $factors == *"'just-perfection-desktop@just-perfection'"* ]] && echo "true" || echo "false")
+	[[ $enabled == "false" ]] && gsettings set org.gnome.shell enabled-extensions "${factors%]*}, 'just-perfection-desktop@just-perfection']"
+	dconf write /org/gnome/shell/disable-user-extensions false
+	dconf reset -f /org/gnome/shell/extensions/just-perfection/app-menu
+	dconf write /org/gnome/shell/extensions/just-perfection/app-menu false
+	dconf write /org/gnome/shell/extensions/just-perfection/background-menu false
+	dconf write /org/gnome/shell/extensions/just-perfection/startup-status 0
+	dconf write /org/gnome/shell/extensions/just-perfection/window-demands-attention-focus true
+
 	# Change icon theme
 	sudo pacman -S --needed --noconfirm papirus-icon-theme
 	yay -S --needed --noconfirm papirus-folders
@@ -140,30 +156,13 @@ update_appearance() {
 	# Remove favorite apps
 	gsettings set org.gnome.shell favorite-apps "[]"
 
-	# Change backgrounds
-	yay -S --needed --noconfirm gdm-tools
-	local address="https://raw.githubusercontent.com/sharpordie/andpaper/main/src/android-bottom-darker.png"
-	local picture="$HOME/Pictures/Backgrounds/$(basename "$address")"
-	mkdir -p "$(dirname $picture)" && curl -L "$address" -o "$picture"
-	set-gdm-theme -s default "$picture"
-	gsettings set org.gnome.desktop.background picture-options "zoom"
-	gsettings set org.gnome.desktop.background picture-uri-dark "file://$picture"
-	gsettings set org.gnome.desktop.screensaver picture-options "zoom"
-	gsettings set org.gnome.desktop.screensaver picture-uri "file://$picture"
-
-	# Enable just-perfection extension
-	yay -S --needed --noconfirm gnome-shell-extension-just-perfection-desktop
-	local factors=$(gsettings get org.gnome.shell enabled-extensions)
-	[[ $factors == "@as []" ]] && gsettings set org.gnome.shell enabled-extensions "['just-perfection-desktop@just-perfection']"
-	local factors=$(gsettings get org.gnome.shell enabled-extensions)
-	local enabled=$([[ $factors == *"'just-perfection-desktop@just-perfection'"* ]] && echo "true" || echo "false")
-	[[ $enabled == "false" ]] && gsettings set org.gnome.shell enabled-extensions "${factors%]*}, 'just-perfection-desktop@just-perfection']"
-	dconf write /org/gnome/shell/disable-user-extensions false
-	dconf reset -f /org/gnome/shell/extensions/just-perfection/app-menu
-	dconf write /org/gnome/shell/extensions/just-perfection/app-menu false
-	dconf write /org/gnome/shell/extensions/just-perfection/background-menu false
-	dconf write /org/gnome/shell/extensions/just-perfection/startup-status 0
-	dconf write /org/gnome/shell/extensions/just-perfection/window-demands-attention-focus true
+	# Change look for qt apps
+	sudo pacman -S --needed --noconfirm kvantum
+	sudo sed -i "s/#QT_QPA_PLATFORMTHEME=.*/QT_QPA_PLATFORMTHEME=qt5ct/" "/etc/environment"
+	sudo sed -i "s/#QT_STYLE_OVERRIDE.*/QT_STYLE_OVERRIDE=kvantum/" "/etc/environment"
+	sudo sed -i "s/QT_QPA_PLATFORMTHEME=.*/QT_QPA_PLATFORMTHEME=qt5ct/" "/etc/environment"
+	sudo sed -i "s/QT_STYLE_OVERRIDE.*/QT_STYLE_OVERRIDE=kvantum/" "/etc/environment"
+	kvantummanager --set KvGnomeDark
 
 }
 
@@ -172,10 +171,6 @@ update_chromium() {
 	# Handle parameters
 	local deposit=${1:-$HOME/Downloads/DDL}
 	local startup=${2:-about:blank}
-
-	# Handle display bug on first install with some systems
-	local already=$([[ -d "$deposit" ]] && echo "true" || echo "false")
-	if [[ $already == "false" ]]; then mkdir -p "$deposit" && invoke_restart; fi
 
 	# Update dependencies
 	sudo pacman -S --needed --noconfirm curl jq ydotool
@@ -325,7 +320,7 @@ update_chromium_extension() {
 			sleep 2 && sudo ydotool key 15:1 15:0 && sleep 2 && sudo ydotool key 28:1 28:0
 			sleep 2 && sudo ydotool type "$deposit" && sleep 2 && sudo ydotool key 28:1 28:0
 			sleep 2 && sudo ydotool key 15:1 15:0 && sleep 2 && sudo ydotool key 28:1 28:0
-			sleep 2 && sudo ydotool key 56:1 62:1 62:0 56:0
+			sleep 4 && sudo ydotool key 56:1 62:1 62:0 56:0
 			sleep 2 && (chromium --lang=en --start-maximized &) &>/dev/null
 			sleep 4 && sudo ydotool key 29:1 38:1 38:0 29:0
 			sleep 2 && sudo ydotool type "chrome://extensions/" && sleep 2 && sudo ydotool key 28:1 28:0
@@ -343,17 +338,11 @@ update_chromium_extension() {
 
 update_flutter() {
 
-	# # Update package
-	# local present=$([[ -n $(pacman -Q | grep flutter) ]] && echo "true" || echo "false")
-	# yay -S --needed --noconfirm flutter
-
-	# # Finish installation
-	# source /etc/profile
-	# yes | flutter doctor --android-licenses
+	# Update dependencies
+	sudo pacman -S --needed --noconfirm git clang cmake ninja
 
 	# Update package
-	local deposit="$HOME/Android/Flutter"
-	mkdir -p "$deposit"
+	local deposit="$HOME/Android/Flutter" && mkdir -p "$deposit"
 	git clone "https://github.com/flutter/flutter.git" -b stable "$deposit"
 
 	# Change environment
@@ -510,6 +499,20 @@ update_keepassxc() {
 
 }
 
+update_kid3() {
+
+	# Update package
+	sudo pacman -S --needed --noconfirm kid3
+
+}
+
+update_losslesscut() {
+
+	# Update package
+	yay -S --needed --noconfirm losslesscut-bin
+
+}
+
 update_lutris() {
 
 	# Update dependencies
@@ -519,6 +522,23 @@ update_lutris() {
 
 	# Update package
 	sudo pacman -S --needed --noconfirm lutris
+
+}
+
+update_mkvtoolnix() {
+
+	# Update dependencies
+	sudo pacman -S --needed --noconfirm boost-libs
+
+	# Update package
+	sudo pacman -S --needed --noconfirm mkvtoolnix-gui
+
+}
+
+update_obs_studio() {
+
+	# Update package
+	sudo pacman -S --needed --noconfirm obs-studio
 
 }
 
@@ -538,13 +558,13 @@ update_quickemu() {
 	# Update package
 	yay -S --needed --noconfirm quickemu
 
-	# Create macos ventura vm
+	# Create macos monterey vm
 	local current=$(cd -- "$(dirname "$0")" >/dev/null 2>&1 && pwd -P)
-	mkdir -p "$deposit" && cd "$deposit" && quickget macos ventura
-	quickemu --vm macos-ventura.conf --shortcut && cd "$current"
-	local desktop="$HOME/.local/share/applications/macos-ventura.desktop"
+	mkdir -p "$deposit" && cd "$deposit" && quickget macos monterey
+	quickemu --vm macos-monterey.conf --shortcut && cd "$current"
+	local desktop="$HOME/.local/share/applications/macos-monterey.desktop"
 	sed -i "s/Icon=.*/Icon=distributor-logo-mac/" "$desktop"
-	sed -i "s/Name=.*/Name=Ventura/" "$desktop"
+	sed -i "s/Name=.*/Name=Monterey/" "$desktop"
 
 	# Create windows 11 vm
 	local current=$(cd -- "$(dirname "$0")" >/dev/null 2>&1 && pwd -P)
@@ -586,6 +606,10 @@ update_system() {
 
 	# Update system
 	sudo pacman -Syyu --noconfirm
+
+	# Handle display bug on first install with some systems
+	local already=$([[ -d "$HOME/Downloads/DDL" ]] && echo "true" || echo "false")
+	if [[ "$already" == "false" ]]; then mkdir -p "$HOME/Downloads/DDL" && invoke_restart; fi
 
 }
 
@@ -649,7 +673,7 @@ update_vscode() {
 	update_vscode_extension "github.github-vscode-theme"
 
 	# Change settings
-	configs="$HOME/.config/Code/User/settings.json"
+	local configs="$HOME/.config/Code/User/settings.json"
 	[[ -s "$configs" ]] || echo "{}" >"$configs"
 	jq '."editor.fontFamily" = "Cascadia Code, monospace"' "$configs" | sponge "$configs"
 	jq '."editor.fontSize" = 13' "$configs" | sponge "$configs"
@@ -713,6 +737,13 @@ update_woeusb_ng() {
 
 }
 
+update_yt_dlp() {
+
+	# Update package
+	sudo pacman -S --needed --noconfirm yt-dlp
+
+}
+
 main() {
 
 	# Change headline
@@ -748,22 +779,27 @@ main() {
 		"update_system 'Europe/Brussels' 'archogen'"
 		"update_android_cmdline"
 		"update_android_studio"
-		"update_git 'main' 'sharpordie' '72373746+sharpordie@users.noreply.github.com'"
 		"update_chromium"
+		"update_git 'main' 'sharpordie' '72373746+sharpordie@users.noreply.github.com'"
 		"update_vscode"
-		"update-flutter"
+		"update_flutter"
 		"update_hashcat"
+		"update_kid3"
+		"update_losslesscut"
 		# "update_lutris"
 		"update_jdownloader"
 		"update_keepassxc"
+		"update_mkvtoolnix"
+		"update_obs_studio"
 		"update_pycharm_professional"
 		"update_quickemu"
 		"update_scrcpy"
-		# "update_tinymediamanager"
+		"update_tinymediamanager"
 		# "update_vmware_workstation"
 		# "update_waydroid"
 		"update_wireshark"
 		# "update_woeusb_ng"
+		"update_yt_dlp"
 	)
 
 	# Output progress
