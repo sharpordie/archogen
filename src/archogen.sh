@@ -579,6 +579,13 @@ update_mpv() {
 
 }
 
+update_newsflash() {
+
+	# Update package
+	sudo pacman -S --needed --noconfirm newsflash
+
+}
+
 update_obs_studio() {
 
 	# Update package
@@ -634,7 +641,8 @@ update_quickemu() {
 	mkdir -p "$deposit" && cd "$deposit" && quickget windows 11
 	quickemu --vm windows-11.conf --shortcut && cd "$current"
 	local desktop="$HOME/.local/share/applications/windows-11.desktop"
-	sed -i "s/Icon=.*/Icon=windows95/" "$desktop"
+	# sed -i "s/Icon=.*/Icon=windows95/" "$desktop"
+	sed -i "s/Icon=.*/Icon=distributor-logo-windows/" "$desktop"
 	sed -i "s/Name=.*/Name=Windows/" "$desktop"
 
 }
@@ -680,6 +688,31 @@ update_tinymediamanager() {
 
 	# Update package
 	yay -S --needed --noconfirm tiny-media-manager
+
+}
+
+update_transmission() {
+
+	# Handle parameters
+	local deposit=${1:-$HOME/Downloads/P2P}
+	local seeding=${2:-0.0}
+
+	# Update dependencies
+	sudo pacman -S --needed --noconfirm jq moreutils
+
+	# Update package
+	sudo pacman -S --needed --noconfirm transmission-gtk
+
+	# Change settings
+	local configs="$HOME/.config/transmission/settings.json"
+	mkdir -p "$(dirname "$configs")" "$deposit/Incomplete"
+	[[ -s "$configs" ]] || echo "{}" >"$configs"
+	jq '."incomplete-dir-enabled" = true' "$configs" | sponge "$configs"
+	jq '."ratio-limit-enabled" = true' "$configs" | sponge "$configs"
+	jq '."user-has-given-informed-consent" = true' "$configs" | sponge "$configs"
+	jq ".\"download-dir\" = \"$deposit\"" "$configs" | sponge "$configs"
+	jq ".\"incomplete-dir\" = \"$deposit/Incomplete\"" "$configs" | sponge "$configs"
+	jq ".\"ratio-limit\" = $seeding" "$configs" | sponge "$configs"
 
 }
 
@@ -855,12 +888,14 @@ main() {
 		"update_mambaforge"
 		"update_mkvtoolnix"
 		"update_mpv"
+		"update_newsflash"
 		"update_obs_studio"
 		"update_pycharm_professional"
 		"update_python"
 		"update_quickemu"
 		"update_scrcpy"
 		"update_tinymediamanager"
+		"update_transmission"
 		# "update_vmware_workstation"
 		# "update_waydroid"
 		"update_wireshark"
