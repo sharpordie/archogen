@@ -527,20 +527,25 @@ update_lutris() {
 
 update_mambaforge() {
 
-	# Update package
-	yay -S --needed --noconfirm mambaforge
+	# Handle parameters
+	local deposit=${1:-$HOME/.mambaforge}
 
-	# Finish installation
-	local configs="$HOME/.bashrc"
-	if ! grep -q "mambaforge" "$configs" 2>/dev/null; then
-		[[ -s "$configs" ]] || touch "$configs"
-		[[ -z $(tail -1 "$configs") ]] || echo "" >>"$configs"
-		echo '[[ -f /opt/mambaforge/etc/profile.d/conda.sh ]] && source /opt/mambaforge/etc/profile.d/conda.sh' >>"$configs"
-		[[ -f /opt/mambaforge/etc/profile.d/conda.sh ]] && source /opt/mambaforge/etc/profile.d/conda.sh
+	# Update dependencies
+	sudo pacman -S --needed --noconfirm curl
+
+	# Update package
+	local present=$([[ -x "$(which mamba)" ]] && echo "true" || echo "false")
+	if [[ "$present" == "false" ]]; then
+		local address="https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge-$(uname)-$(uname -m).sh"
+		local fetched="$(mktemp -d)/$(basename "$address")"
+		curl -L "$address" -o "$fetched" && sh "$fetched" -b -p "$deposit"
 	fi
 
+	# Change environment
+	"$deposit/condabin/conda" init
+
 	# Change settings
-	conda config --set auto_activate_base false
+	"$deposit/condabin/conda" config --set auto_activate_base false
 
 }
 
@@ -583,6 +588,16 @@ update_newsflash() {
 
 	# Update package
 	sudo pacman -S --needed --noconfirm newsflash
+
+}
+
+update_nodejs() {
+
+	# Update package
+	sudo pacman -S --needed --noconfirm nodejs npm
+
+	# Change settings
+	npm set audit false
 
 }
 
@@ -889,6 +904,7 @@ main() {
 		"update_mkvtoolnix"
 		"update_mpv"
 		"update_newsflash"
+		"update_nodejs"
 		"update_obs_studio"
 		"update_pycharm_professional"
 		"update_python"
