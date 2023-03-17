@@ -640,6 +640,10 @@ update_quickemu() {
 	# Handle parameters
 	local deposit=${1:-$HOME/Machines}
 
+	# Update dependencies
+	sudo pacman -Rdd --noconfirm qemu-base
+	sudo pacman -S --needed --noconfirm qemu-desktop
+
 	# Update package
 	yay -S --needed --noconfirm quickemu
 
@@ -656,7 +660,6 @@ update_quickemu() {
 	mkdir -p "$deposit" && cd "$deposit" && quickget windows 11
 	quickemu --vm windows-11.conf --shortcut && cd "$current"
 	local desktop="$HOME/.local/share/applications/windows-11.desktop"
-	# sed -i "s/Icon=.*/Icon=windows95/" "$desktop"
 	sed -i "s/Icon=.*/Icon=distributor-logo-windows/" "$desktop"
 	sed -i "s/Name=.*/Name=Windows/" "$desktop"
 
