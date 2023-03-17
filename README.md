@@ -12,16 +12,3 @@ Blindly executing this is strongly discouraged.
 address="https://raw.githubusercontent.com/sharpordie/archogen/main/src/archogen.sh"
 fetched="$HOME/$(basename $address)" ; wget $address -O $fetched ; bash $fetched
 ```
-
-# <samp>FUNDINGS</samp>
-
-Support my work by sending me some crypto.
-
-```txt
-ADA: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-BAT: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-BCH: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-BTC: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-ETH: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-XMR: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-```
