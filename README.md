@@ -17,7 +17,7 @@ bash $fetched
 
 # <samp>FUNDINGS</samp>
 
-Support my work by sending me some crypto. 🤑
+Support my work by sending me some crypto. 😉
 
 ```txt
 ADA: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
