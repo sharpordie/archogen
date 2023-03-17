@@ -8,7 +8,7 @@ Opinionated post-installation script for Arch Linux.
 
 Blindly executing this is strongly discouraged.
 
-```shell
+```bash
 address="https://raw.githubusercontent.com/sharpordie/archogen/main/src/archogen.sh"
 fetched="$HOME/$(basename $address)"
 wget $address -O $fetched
