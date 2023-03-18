@@ -98,6 +98,10 @@ update_appearance() {
 	gsettings set org.gnome.settings-daemon.plugins.color night-light-schedule-from 0
 	gsettings set org.gnome.settings-daemon.plugins.color night-light-schedule-to 0
 	gsettings set org.gnome.settings-daemon.plugins.color night-light-temperature 4000
+	sudo -u gdm dbus-launch gsettings set org.gnome.settings-daemon.plugins.color night-light-enabled true
+	sudo -u gdm dbus-launch gsettings set org.gnome.settings-daemon.plugins.color night-light-schedule-from 0
+	sudo -u gdm dbus-launch gsettings set org.gnome.settings-daemon.plugins.color night-light-schedule-to 0
+	sudo -u gdm dbus-launch gsettings set org.gnome.settings-daemon.plugins.color night-light-temperature 4000
 
 	# Change gtk theme
 	gsettings set org.gnome.desktop.interface color-scheme "prefer-dark"
@@ -114,6 +118,14 @@ update_appearance() {
 	gsettings set org.gnome.desktop.background picture-uri-dark "file://$picture"
 	gsettings set org.gnome.desktop.screensaver picture-options "zoom"
 	gsettings set org.gnome.desktop.screensaver picture-uri "file://$picture"
+
+	# Enable caffeine extension
+	yay -S --needed --noconfirm gnome-shell-extension-caffeine
+	local factors=$(gsettings get org.gnome.shell enabled-extensions)
+	[[ $factors == "@as []" ]] && gsettings set org.gnome.shell enabled-extensions "['caffeine@patapon.info']"
+	local factors=$(gsettings get org.gnome.shell enabled-extensions)
+	local enabled=$([[ $factors == *"'caffeine@patapon.info'"* ]] && echo "true" || echo "false")
+	[[ $enabled == "false" ]] && gsettings set org.gnome.shell enabled-extensions "${factors%]*}, 'caffeine@patapon.info']"
 
 	# Enable just-perfection extension
 	yay -S --needed --noconfirm gnome-shell-extension-just-perfection-desktop
@@ -163,6 +175,27 @@ update_appearance() {
 	sudo sed -i "s/QT_QPA_PLATFORMTHEME=.*/QT_QPA_PLATFORMTHEME=qt5ct/" "/etc/environment"
 	sudo sed -i "s/QT_STYLE_OVERRIDE.*/QT_STYLE_OVERRIDE=kvantum/" "/etc/environment"
 	kvantummanager --set KvGnomeDark
+
+	# Change default file manager
+	xdg-mime default org.gnome.Nautilus.desktop inode/directory
+
+	# Revert file-roller as archive manager
+	sudo pacman -S --needed --noconfirm file-roller p7zip unrar
+	xdg-mime default org.gnome.FileRoller.desktop \
+		application/x-7z-compressed application/x-7z-compressed-tar application/x-ace application/x-alz \
+		application/x-ar application/x-arj application/x-bzip application/x-bzip-compressed-tar \
+		application/x-bzip1 application/x-bzip1-compressed-tar application/x-cabinet application/x-cd-image \
+		application/x-compress application/x-compressed-tar application/x-cpio application/x-deb \
+		application/x-ear application/x-ms-dos-executable application/x-gtar application/x-gzip \
+		application/x-gzpostscript application/x-java-archive application/x-lha application/x-lhz \
+		application/x-lrzip application/x-lrzip-compressed-tar application/x-lz4 application/x-lzip \
+		application/x-lzip-compressed-tar application/x-lzma application/x-lzma-compressed-tar application/x-lzop \
+		application/x-lz4-compressed-tar application/x-lzop-compressed-tar application/x-ms-wim application/x-rar \
+		application/x-rar-compressed application/x-rpm application/x-source-rpm application/x-rzip \
+		application/x-rzip-compressed-tar application/x-tar application/x-tarz application/x-stuffit \
+		application/x-war application/x-xz application/x-xz-compressed-tar application/x-zip \
+		application/x-zip-compressed application/x-zoo application/zip application/x-archive \
+		application/vnd.ms-cab-compressed application/vnd.debian.binary-package application/gzip
 
 }
 
@@ -656,6 +689,7 @@ update_quickemu() {
 	sed -i "s/Name=.*/Name=Monterey/" "$desktop"
 
 	# Create windows 11 vm
+	# Manual windows iso download is unfortunately required now
 	local current=$(cd -- "$(dirname "$0")" >/dev/null 2>&1 && pwd -P)
 	mkdir -p "$deposit" && cd "$deposit" && quickget windows 11
 	quickemu --vm windows-11.conf --shortcut && cd "$current"
@@ -797,16 +831,6 @@ update_vscode() {
 	jq '."update.mode" = "none"' "$configs" | sponge "$configs"
 	jq '."window.menuBarVisibility" = "toggle"' "$configs" | sponge "$configs"
 	jq '."workbench.colorTheme" = "GitHub Dark Default"' "$configs" | sponge "$configs"
-
-}
-
-update_vscode_extension() {
-
-	# Handle parameters
-	local payload=${1}
-
-	# Update extension
-	code --install-extension "$payload" --force &>/dev/null || true
 
 }
 
