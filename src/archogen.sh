@@ -939,7 +939,7 @@ main() {
 		"update_scrcpy"
 		"update_tinymediamanager"
 		"update_transmission"
-		# "update_vmware_workstation"
+		"update_vmware_workstation"
 		# "update_waydroid"
 		"update_wireshark"
 		# "update_woeusb_ng"
