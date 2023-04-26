@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 update_android_cmdline() {
 
 	# Update dependencies
@@ -22,7 +24,7 @@ update_android_cmdline() {
 	local configs="$HOME/.bashrc"
 	if ! grep -q "ANDROID_HOME" "$configs" 2>/dev/null; then
 		[[ -s "$configs" ]] || touch "$configs"
-		[[ -z $(tail -1 "$configs") ]] || echo "" >>"$configs"
+		[[ -z "$(tail -1 "$configs")" ]] || echo "" >>"$configs"
 		echo 'export ANDROID_HOME="$HOME/Android/Sdk"' >>"$configs"
 		echo 'export PATH="$PATH:$ANDROID_HOME/cmdline-tools/latest/bin"' >>"$configs"
 		echo 'export PATH="$PATH:$ANDROID_HOME/emulator"' >>"$configs"
@@ -79,7 +81,7 @@ update_chromium() {
 	local configs="$HOME/.bashrc"
 	if ! grep -q "CHROME_EXECUTABLE" "$configs" 2>/dev/null; then
 		[[ -s "$configs" ]] || touch "$configs"
-		[[ -z $(tail -1 "$configs") ]] || echo "" >>"$configs"
+		[[ -z "$(tail -1 "$configs")" ]] || echo "" >>"$configs"
 		echo 'export CHROME_EXECUTABLE="/usr/bin/chromium"' >>"$configs"
 		export CHROME_EXECUTABLE="/usr/bin/chromium"
 	fi
@@ -228,6 +230,48 @@ update_chromium_extension() {
 
 }
 
+update_flutter() {
+
+	# Update dependencies
+	sudo pacman -S --needed --noconfirm git clang cmake ninja
+
+	# Update package
+	local deposit="$HOME/Android/Flutter" && mkdir -p "$deposit"
+	git clone "https://github.com/flutter/flutter.git" -b stable "$deposit"
+
+	# Change environment
+	local configs="$HOME/.bashrc"
+	if ! grep -q "Flutter" "$configs" 2>/dev/null; then
+		[[ -s "$configs" ]] || touch "$configs"
+		[[ -z "$(tail -1 "$configs")" ]] || echo "" >>"$configs"
+		echo 'export PATH="$PATH:$HOME/Android/Flutter/bin"' >>"$configs"
+		export PATH="$PATH:$HOME/Android/Flutter/bin"
+	fi
+
+	# Finish installation
+	flutter channel stable
+	flutter upgrade
+	dart --disable-analytics
+	flutter config --no-analytics
+	yes | flutter doctor --android-licenses
+
+	# Update android-studio plugins
+	local product=$(find /opt/android-* -maxdepth 0 2>/dev/null | sort -r | head -1)
+	update_jetbrains_plugin "$product" "6351"  # dart
+	update_jetbrains_plugin "$product" "9212"  # flutter
+	update_jetbrains_plugin "$product" "13666" # flutter-intl
+	update_jetbrains_plugin "$product" "14641" # flutter-riverpod-snippets
+
+	# Update vscode extensions
+	update_vscode_extension "alexisvt.flutter-snippets"
+	update_vscode_extension "dart-code.flutter"
+	update_vscode_extension "pflannery.vscode-versionlens"
+	update_vscode_extension "RichardCoutts.mvvm-plus"
+	update_vscode_extension "robert-brunhage.flutter-riverpod-snippets"
+	# update_vscode_extension "usernamehw.errorlens"
+
+}
+
 update_git() {
 
 	# Handle parameters
@@ -241,9 +285,82 @@ update_git() {
 	# Change settings
 	git config --global http.postBuffer 1048576000
 	git config --global init.defaultBranch "$default"
-	git config --global core.autocrlf true
 	if [[ -n "$gitmail" ]]; then git config --global user.email "$gitmail"; fi
 	if [[ -n "$gituser" ]]; then git config --global user.name "$gituser"; fi
+
+}
+
+update_jdownloader() {
+
+	# Handle parameters
+	local deposit=${1:-$HOME/Downloads/JD2}
+
+	# Update dependencies
+	sudo pacman -S --needed --noconfirm jdk-openjdk jq moreutils
+
+	# Update package
+	local present=$([[ -n $(pacman -Q | grep jdownloader2) ]] && echo "true" || echo "false")
+	yay -S --needed --noconfirm jdownloader2
+
+	# Finish installation
+	if [[ "$present" == "false" ]]; then
+		local appdata="$HOME/.jd/cfg"
+		local config1="$appdata/org.jdownloader.settings.GraphicalUserInterfaceSettings.json"
+		local config2="$appdata/org.jdownloader.settings.GeneralSettings.json"
+		local config3="$appdata/org.jdownloader.gui.jdtrayicon.TrayExtension.json"
+		local config4="$appdata/org.jdownloader.extensions.extraction.ExtractionExtension.json"
+		(jdownloader >/dev/null 2>&1 &) && sleep 4
+		while [[ ! -f "$config1" ]]; do sleep 2; done && pkill java && sleep 4
+		jq ".bannerenabled = false" "$config1" | sponge "$config1"
+		jq ".clipboardmonitored = false" "$config1" | sponge "$config1"
+		jq ".donatebuttonlatestautochange = 4102444800000" "$config1" | sponge "$config1"
+		jq ".donatebuttonstate = \"AUTO_HIDDEN\"" "$config1" | sponge "$config1"
+		jq ".myjdownloaderviewvisible = false" "$config1" | sponge "$config1"
+		jq ".premiumalertetacolumnenabled = false" "$config1" | sponge "$config1"
+		jq ".premiumalertspeedcolumnenabled = false" "$config1" | sponge "$config1"
+		jq ".premiumalerttaskcolumnenabled = false" "$config1" | sponge "$config1"
+		jq ".specialdealoboomdialogvisibleonstartup = false" "$config1" | sponge "$config1"
+		jq ".specialdealsenabled = false" "$config1" | sponge "$config1"
+		jq ".speedmetervisible = false" "$config1" | sponge "$config1"
+		mkdir -p "$deposit" && jq ".defaultdownloadfolder = \"$deposit\"" "$config2" | sponge "$config2"
+		jq ".enabled = false" "$config3" | sponge "$config3"
+		jq ".enabled = false" "$config4" | sponge "$config4"
+		update_chromium_extension "fbcohnmimjicjdomonkcbcpbpnhggkip" # myjdownloader-browser-ext
+	fi
+
+}
+
+update_jetbrains_plugin() {
+
+	# Handle parameters
+	local deposit=${1:-/opt/android-studio}
+	local element=${2}
+
+	# Update dependencies
+	[[ -d "$deposit" && -n "$element" ]] || return 0
+	sudo pacman -S --needed --noconfirm curl dpkg jq
+
+	# Update plugin
+	local release=$(cat "$deposit/product-info.json" | jq -r ".buildNumber" | grep -oP "(\d.+)")
+	local datadir=$(cat "$deposit/product-info.json" | jq -r ".dataDirectoryName")
+	local adjunct=$([[ $datadir == "AndroidStudio"* ]] && echo "Google/$datadir" || echo "JetBrains/$datadir")
+	local plugins="$HOME/.local/share/$adjunct" && mkdir -p "$plugins"
+	for i in {1..3}; do
+		for j in {0..19}; do
+			local address="https://plugins.jetbrains.com/api/plugins/$element/updates?page=$i"
+			local maximum=$(curl -s "$address" | jq ".[$j].until" | tr -d '"' | sed "s/\.\*/\.9999/")
+			local minimum=$(curl -s "$address" | jq ".[$j].since" | tr -d '"' | sed "s/\.\*/\.9999/")
+			if dpkg --compare-versions "${minimum:-0000}" "le" "$release" && dpkg --compare-versions "$release" "le" "${maximum:-9999}"; then
+				local address=$(curl -s "$address" | jq ".[$j].file" | tr -d '"')
+				local address="https://plugins.jetbrains.com/files/$address"
+				local archive="$(mktemp -d)/$(basename "$address")"
+				curl -LA "mozilla/5.0" "$address" -o "$archive"
+				unzip -o "$archive" -d "$plugins"
+				break 2
+			fi
+			sleep 1
+		done
+	done
 
 }
 
@@ -336,19 +453,18 @@ update_plasma() {
 	picture="$HOME/Pictures/Backgrounds/$(basename "$address")"
 	mkdir -p "$(dirname $picture)" && curl -L "$address" -o "$picture"
 	kwriteconfig5 --file "$configs" --group "Containments" --group "1" --group "Wallpaper" --group "org.kde.image" --group "General" --key "Image" "file://$picture"
-	plasmashell --replace >/dev/null 2>&1 & 
-
-	# Change icon theme
-	local configs="$HOME/.config/kdeglobals"
-	sudo pacman -S --needed --noconfirm papirus-icon-theme
-	yay -S --needed --noconfirm papirus-folders
-	kwriteconfig5 --file "$configs" --group Icons --key Theme "Papirus"
-	sudo papirus-folders --color blue --theme Papirus
+	plasmashell --replace >/dev/null 2>&1 &
+	disown
 
 	# Change global theme
-	plasma-apply-colorscheme BreezeLight
-	plasma-apply-desktoptheme breeze-light
-	plasma-apply-lookandfeel -a org.kde.breeze.desktop
+	configs="$HOME/.config/kdeglobals"
+	sudo pacman -S --needed --noconfirm papirus-icon-theme
+	yay -S --needed --noconfirm papirus-folders
+	plasma-apply-lookandfeel -a org.kde.breezedark.desktop
+	kwriteconfig5 --file "$configs" --group Icons --key Theme "Papirus-Dark"
+	sudo papirus-folders --color yellow --theme Papirus-Dark
+	plasmashell --replace >/dev/null 2>&1 &
+	disown
 
 	# Enable night color
 	local configs="$HOME/.config/kwinrc"
@@ -363,6 +479,22 @@ update_plasma() {
 	# Remove single click
 	local configs="$HOME/.config/kdeglobals"
 	kwriteconfig5 --file "$configs" --group "KDE" --key "SingleClick" "false"
+
+}
+
+update_pycharm_professional() {
+
+	# Update package
+	local present=$([[ -n $(pacman -Q | grep pycharm-professional) ]] && echo "true" || echo "false")
+	yay -S --needed --noconfirm pycharm-professional
+
+}
+
+update_qemu() {
+
+	# Update package
+	sudo pacman -Rdd --noconfirm qemu-base
+	sudo pacman -S --needed --noconfirm qemu-desktop
 
 }
 
@@ -384,6 +516,8 @@ update_system() {
 
 	# Update fonts
 	sudo pacman -S --needed --noconfirm noto-fonts-emoji
+	sudo pacman -Rdd --noconfirm bubblewrap
+	yes | yay -S --needed fontconfig-ubuntu
 
 	# Update firmware
 	sudo pacman -S --needed --noconfirm fwupd
@@ -419,12 +553,12 @@ update_vscode() {
 	[[ -s "$configs" ]] || echo "{}" >"$configs"
 	jq '."editor.fontFamily" = "Cascadia Code, monospace"' "$configs" | sponge "$configs"
 	jq '."editor.fontSize" = 13' "$configs" | sponge "$configs"
-	jq '."editor.lineHeight" = 35' "$configs" | sponge "$configs"
+	jq '."editor.lineHeight" = 32' "$configs" | sponge "$configs"
 	jq '."security.workspace.trust.enabled" = false' "$configs" | sponge "$configs"
 	jq '."telemetry.telemetryLevel" = "crash"' "$configs" | sponge "$configs"
 	jq '."update.mode" = "none"' "$configs" | sponge "$configs"
 	jq '."window.menuBarVisibility" = "toggle"' "$configs" | sponge "$configs"
-	jq '."workbench.colorTheme" = "GitHub Light Default"' "$configs" | sponge "$configs"
+	jq '."workbench.colorTheme" = "GitHub Dark Default"' "$configs" | sponge "$configs"
 
 }
 
@@ -444,5 +578,3 @@ update_wireshark() {
 	sudo pacman -S --needed --noconfirm wireshark-qt
 
 }
-
-update_git 'main' 'sharpordie' '72373746+sharpordie@users.noreply.github.com'
