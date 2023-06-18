@@ -392,6 +392,30 @@ update_krita() {
 
 }
 
+update_mambaforge() {
+
+	# Handle parameters
+	local deposit=${1:-$HOME/.mambaforge}
+
+	# Update dependencies
+	sudo pacman -S --needed --noconfirm curl
+
+	# Update package
+	local present=$([[ -x "$(which mamba)" ]] && echo "true" || echo "false")
+	if [[ "$present" == "false" ]]; then
+		local address="https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge-$(uname)-$(uname -m).sh"
+		local fetched="$(mktemp -d)/$(basename "$address")"
+		curl -L "$address" -o "$fetched" && sh "$fetched" -b -p "$deposit"
+	fi
+
+	# Change environment
+	"$deposit/condabin/conda" init
+
+	# Change settings
+	"$deposit/condabin/conda" config --set auto_activate_base false
+
+}
+
 update_mkvtoolnix() {
 
 	# Update dependencies
@@ -460,7 +484,7 @@ update_plasma() {
 	configs="$HOME/.config/kdeglobals"
 	sudo pacman -S --needed --noconfirm papirus-icon-theme
 	yay -S --needed --noconfirm papirus-folders
-	plasma-apply-lookandfeel -a org.kde.breezedark.desktop
+	# plasma-apply-lookandfeel -a org.kde.breezedark.desktop
 	kwriteconfig5 --file "$configs" --group Icons --key Theme "Papirus-Dark"
 	sudo papirus-folders --color yellow --theme Papirus-Dark
 	plasmashell --replace >/dev/null 2>&1 &
@@ -532,6 +556,39 @@ update_system() {
 
 }
 
+update_vmware_workstation() {
+
+	# Handle parameters
+	local deposit=${1:-$HOME/Machines}
+	local serials=${2:-MC60H-DWHD5-H80U9-6V85M-8280D}
+
+	# Update package
+	local present=$([[ -n $(pacman -Q | grep vmware-workstation) ]] && echo "true" || echo "false")
+	yay -S --needed --noconfirm vmware-workstation
+
+	# Launch modules
+	sudo modprobe -a vmw_vmci vmmon
+
+	# Enable services
+	sudo systemctl enable --now vmware-networks.service
+	sudo systemctl enable --now vmware-usbarbitrator.service
+
+	# Change serials
+	sudo /usr/lib/vmware/bin/vmware-vmx-debug --new-sn "$serials"
+
+	# Change settings
+	if [[ "$present" == "false" ]]; then
+		local configs="$HOME/.vmware/preferences"
+		(vmware >/dev/null 2>&1 &) && sleep 4
+		while [[ ! -f "$configs" ]]; do sleep 2; done && pkill vmware && sleep 4
+		if ! grep -q "prefvmx.defaultVMPath" "$configs" 2>/dev/null; then
+			mkdir -p "$deposit"
+			echo "prefvmx.defaultVMPath = \"$deposit\"" >>"$configs"
+		fi
+	fi
+
+}
+
 update_vscode() {
 
 	# Update dependencies
@@ -578,3 +635,91 @@ update_wireshark() {
 	sudo pacman -S --needed --noconfirm wireshark-qt
 
 }
+
+update_yt_dlp() {
+
+	# Update package
+	sudo pacman -S --needed --noconfirm yt-dlp
+
+}
+
+main() {
+
+	# Prompt password
+	sudo -v && clear
+
+	# Change headline
+	printf "\033]0;%s\007" "$(basename "$(readlink -f "${BASH_SOURCE[0]}")")"
+
+	# Output greeting
+	read -r -d "" welcome <<-EOD
+		░█████╗░██████╗░░█████╗░██╗░░██╗░█████╗░░██████╗░███████╗███╗░░██╗
+		██╔══██╗██╔══██╗██╔══██╗██║░░██║██╔══██╗██╔════╝░██╔════╝████╗░██║
+		███████║██████╔╝██║░░╚═╝███████║██║░░██║██║░░██╗░█████╗░░██╔██╗██║
+		██╔══██║██╔══██╗██║░░██╗██╔══██║██║░░██║██║░░╚██╗██╔══╝░░██║╚████║
+		██║░░██║██║░░██║╚█████╔╝██║░░██║╚█████╔╝╚██████╔╝███████╗██║░╚███║
+		╚═╝░░╚═╝╚═╝░░╚═╝░╚════╝░╚═╝░░╚═╝░╚════╝░░╚═════╝░╚══════╝╚═╝░░╚══╝
+	EOD
+	printf "\n\033[92m%s\033[00m\n\n" "$welcome"
+
+	# Remove timeouts
+	echo "Defaults timestamp_timeout=-1" | sudo tee "/etc/sudoers.d/disable_timeout" &>/dev/null
+
+	# Remove sleeping
+	gsettings set org.gnome.desktop.notifications show-banners false
+	gsettings set org.gnome.desktop.screensaver lock-enabled false
+	gsettings set org.gnome.desktop.session idle-delay 0
+
+	# Handle elements
+	local members=(
+		"update_system"
+		"update_plasma"
+		"update_android_studio"
+		"update_chromium"
+		"update_git 'main' 'sharpordie' '72373746+sharpordie@users.noreply.github.com'"
+		"update_vscode"
+		"update_flutter"
+		"update_jdownloader"
+		"update_keepassxc"
+		"update_mambaforge"
+		"update_mkvtoolnix"
+		"update_mpv"
+		"update_obs_studio"
+		"update_pycharm_professional"
+		"update_scrcpy"
+		"update_vmware_workstation"
+		"update_wireshark"
+		"update_yt_dlp"
+	)
+
+	# Output progress
+	local bigness=$((${#welcome} / $(echo "$welcome" | wc -l)))
+	local heading="\r%-"$((bigness - 19))"s   %-5s   %-8s\n\n"
+	local loading="\033[93m\r%-"$((bigness - 19))"s   %02d/%02d   %-8s\b\033[0m"
+	local failure="\033[91m\r%-"$((bigness - 19))"s   %02d/%02d   %-8s\n\033[0m"
+	local success="\033[92m\r%-"$((bigness - 19))"s   %02d/%02d   %-8s\n\033[0m"
+	printf "$heading" "FUNCTION" "ITEMS" "DURATION"
+	local minimum=1 && local maximum=${#members[@]}
+	for element in "${members[@]}"; do
+		local written=$(basename "$(echo "$element" | cut -d "'" -f 1)" | tr "[:lower:]" "[:upper:]")
+		local started=$(date +"%s") && printf "$loading" "$written" "$minimum" "$maximum" "--:--:--"
+		eval "$element" >/dev/null 2>&1 && local current="$success" || local current="$failure"
+		local extinct=$(date +"%s") && elapsed=$((extinct - started))
+		local elapsed=$(printf "%02d:%02d:%02d\n" $((elapsed / 3600)) $(((elapsed % 3600) / 60)) $((elapsed % 60)))
+		printf "$current" "$written" "$minimum" "$maximum" "$elapsed" && ((minimum++))
+	done
+
+	# Revert sleeping
+	gsettings set org.gnome.desktop.notifications show-banners true
+	gsettings set org.gnome.desktop.screensaver lock-enabled true
+	gsettings set org.gnome.desktop.session idle-delay 300
+
+	# Revert timeouts
+	sudo rm "/etc/sudoers.d/disable_timeout"
+
+	# Output new line
+	printf "\n"
+
+}
+
+main
