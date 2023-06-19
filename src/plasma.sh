@@ -230,6 +230,58 @@ update_chromium_extension() {
 
 }
 
+update_flatpak_jdownloader() {
+
+	# Handle parameters
+	local deposit=${1:-$HOME/Downloads/JD2}
+
+	# Update dependencies
+	sudo pacman -S --needed --noconfirm flatpak jq moreutils
+
+	# Update package
+	local starter="/var/lib/flatpak/exports/bin/org.jdownloader.JDownloader"
+	local present=$([[ -f "$starter" ]] && echo true || echo false)
+	sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+	sudo flatpak remote-modify --enable flathub
+	flatpak install -y flathub org.jdownloader.JDownloader
+	sudo update-desktop-database
+
+	# Create deposit
+	mkdir -p "$deposit"
+
+	# Change desktop
+	local desktop="/var/lib/flatpak/exports/share/applications/org.jdownloader.JDownloader.desktop"
+	sudo sed -i "s/Icon=.*/Icon=jdownloader/" "$desktop"
+
+	# Change settings
+	if [[ "$present" == "false" ]]; then
+		local appdata="$HOME/.var/app/org.jdownloader.JDownloader/data/jdownloader/cfg"
+		local config1="$appdata/org.jdownloader.settings.GraphicalUserInterfaceSettings.json"
+		local config2="$appdata/org.jdownloader.settings.GeneralSettings.json"
+		local config3="$appdata/org.jdownloader.gui.jdtrayicon.TrayExtension.json"
+		local config4="$appdata/org.jdownloader.extensions.extraction.ExtractionExtension.json"
+		(flatpak run org.jdownloader.JDownloader >/dev/null 2>&1 &) && sleep 8
+		while [[ ! -f "$config1" ]]; do sleep 2; done
+		flatpak kill org.jdownloader.JDownloader && sleep 8
+		jq ".bannerenabled = false" "$config1" | sponge "$config1"
+		jq ".clipboardmonitored = false" "$config1" | sponge "$config1"
+		jq ".donatebuttonlatestautochange = 4102444800000" "$config1" | sponge "$config1"
+		jq ".donatebuttonstate = \"AUTO_HIDDEN\"" "$config1" | sponge "$config1"
+		jq ".myjdownloaderviewvisible = false" "$config1" | sponge "$config1"
+		jq ".premiumalertetacolumnenabled = false" "$config1" | sponge "$config1"
+		jq ".premiumalertspeedcolumnenabled = false" "$config1" | sponge "$config1"
+		jq ".premiumalerttaskcolumnenabled = false" "$config1" | sponge "$config1"
+		jq ".specialdealoboomdialogvisibleonstartup = false" "$config1" | sponge "$config1"
+		jq ".specialdealsenabled = false" "$config1" | sponge "$config1"
+		jq ".speedmetervisible = false" "$config1" | sponge "$config1"
+		jq ".defaultdownloadfolder = \"$deposit\"" "$config2" | sponge "$config2"
+		jq ".enabled = false" "$config3" | sponge "$config3"
+		jq ".enabled = false" "$config4" | sponge "$config4"
+		update_chromium_extension "fbcohnmimjicjdomonkcbcpbpnhggkip"
+	fi
+
+}
+
 update_flutter() {
 
 	# Update dependencies
@@ -666,30 +718,33 @@ main() {
 	echo "Defaults timestamp_timeout=-1" | sudo tee "/etc/sudoers.d/disable_timeout" &>/dev/null
 
 	# Remove sleeping
-	gsettings set org.gnome.desktop.notifications show-banners false
-	gsettings set org.gnome.desktop.screensaver lock-enabled false
-	gsettings set org.gnome.desktop.session idle-delay 0
+	kwriteconfig5 --file kscreenlockerrc --group Daemon --key Autolock false
+	qdbus org.freedesktop.ScreenSaver /ScreenSaver configure
+	# gsettings set org.gnome.desktop.notifications show-banners false
+	# gsettings set org.gnome.desktop.screensaver lock-enabled false
+	# gsettings set org.gnome.desktop.session idle-delay 0
 
 	# Handle elements
 	local members=(
-		"update_system"
-		"update_plasma"
-		"update_android_studio"
-		"update_chromium"
-		"update_git 'main' 'sharpordie' '72373746+sharpordie@users.noreply.github.com'"
-		"update_vscode"
-		"update_flutter"
-		"update_jdownloader"
-		"update_keepassxc"
-		"update_mambaforge"
-		"update_mkvtoolnix"
-		"update_mpv"
-		"update_obs_studio"
-		"update_pycharm_professional"
-		"update_scrcpy"
-		"update_vmware_workstation"
-		"update_wireshark"
-		"update_yt_dlp"
+		# "update_system"
+		# "update_plasma"
+		# "update_android_studio"
+		# "update_chromium"
+		# "update_git 'main' 'sharpordie' '72373746+sharpordie@users.noreply.github.com'"
+		# "update_vscode"
+		"update_flatpak_jdownloader"
+		# "update_flutter"
+		# "update_jdownloader"
+		# "update_keepassxc"
+		# "update_mambaforge"
+		# "update_mkvtoolnix"
+		# "update_mpv"
+		# "update_obs_studio"
+		# "update_pycharm_professional"
+		# "update_scrcpy"
+		# "update_vmware_workstation"
+		# "update_wireshark"
+		# "update_yt_dlp"
 	)
 
 	# Output progress
