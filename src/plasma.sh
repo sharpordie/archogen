@@ -46,14 +46,14 @@ update_android_studio() {
 	# Finish installation
 	if [[ "$present" == "false" ]]; then
 		update_android_cmdline
-		yes | sdkmanager "build-tools;33.0.2"
+		yes | sdkmanager "build-tools;34.0.0"
 		yes | sdkmanager "emulator"
 		yes | sdkmanager "patcher;v4"
 		yes | sdkmanager "platform-tools"
 		yes | sdkmanager "platforms;android-33"
 		yes | sdkmanager "platforms;android-33-ext5"
-		yes | sdkmanager "sources;android-33"
-		yes | sdkmanager "system-images;android-33;google_apis;x86_64"
+		yes | sdkmanager "sources;android-34"
+		yes | sdkmanager "system-images;android-34;google_apis;x86_64"
 		yes | sdkmanager --licenses
 		yes | sdkmanager --update
 	fi
@@ -227,6 +227,13 @@ update_chromium_extension() {
 			sleep 2 && sudo ydotool key 56:1 62:1 62:0 56:0
 		fi
 	fi
+
+}
+
+update_elisa() {
+
+	# Update package
+	sudo pacman -S --needed --noconfirm elisa
 
 }
 
@@ -720,31 +727,33 @@ main() {
 	# Remove sleeping
 	kwriteconfig5 --file kscreenlockerrc --group Daemon --key Autolock false
 	qdbus org.freedesktop.ScreenSaver /ScreenSaver configure
-	# gsettings set org.gnome.desktop.notifications show-banners false
-	# gsettings set org.gnome.desktop.screensaver lock-enabled false
-	# gsettings set org.gnome.desktop.session idle-delay 0
+	kwriteconfig5 --file powermanagementprofilesrc --group AC --group DPMSControl --key idleTime --type int 21600
+	kwriteconfig5 --file powermanagementprofilesrc --group AC --group SuspendSession --key idleTime --type int 21600000
+	qdbus org.kde.Solid.PowerManagement /org/kde/Solid/PowerManagement org.kde.Solid.PowerManagement.refreshStatus
 
 	# Handle elements
 	local members=(
-		# "update_system"
-		# "update_plasma"
-		# "update_android_studio"
-		# "update_chromium"
-		# "update_git 'main' 'sharpordie' '72373746+sharpordie@users.noreply.github.com'"
-		# "update_vscode"
-		"update_flatpak_jdownloader"
-		# "update_flutter"
+		"update_system"
+		"update_plasma"
+		"update_android_studio"
+		"update_chromium"
+		"update_git 'main' 'sharpordie' '72373746+sharpordie@users.noreply.github.com'"
+		"update_vscode"
+		"update_elisa"
+		# "update_flatpak_jdownloader"
+		"update_flutter"
 		# "update_jdownloader"
-		# "update_keepassxc"
-		# "update_mambaforge"
-		# "update_mkvtoolnix"
-		# "update_mpv"
-		# "update_obs_studio"
-		# "update_pycharm_professional"
+		"update_keepassxc"
+		"update_kid3"
+		"update_mambaforge"
+		"update_mkvtoolnix"
+		"update_mpv"
+		"update_obs_studio"
+		"update_pycharm_professional"
 		# "update_scrcpy"
 		# "update_vmware_workstation"
-		# "update_wireshark"
-		# "update_yt_dlp"
+		"update_wireshark"
+		"update_yt_dlp"
 	)
 
 	# Output progress
@@ -765,9 +774,11 @@ main() {
 	done
 
 	# Revert sleeping
-	gsettings set org.gnome.desktop.notifications show-banners true
-	gsettings set org.gnome.desktop.screensaver lock-enabled true
-	gsettings set org.gnome.desktop.session idle-delay 300
+	kwriteconfig5 --file kscreenlockerrc --group Daemon --key Autolock true
+	qdbus org.freedesktop.ScreenSaver /ScreenSaver configure
+	kwriteconfig5 --file powermanagementprofilesrc --group AC --group DPMSControl --key idleTime --type int 600
+	kwriteconfig5 --file powermanagementprofilesrc --group AC --group SuspendSession --key idleTime --type int 900000
+	qdbus org.kde.Solid.PowerManagement /org/kde/Solid/PowerManagement org.kde.Solid.PowerManagement.refreshStatus
 
 	# Revert timeouts
 	sudo rm "/etc/sudoers.d/disable_timeout"

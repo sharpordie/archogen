@@ -77,14 +77,14 @@ update_android_studio() {
 	# Finish installation
 	if [[ "$present" == "false" ]]; then
 		update_android_cmdline
-		yes | sdkmanager "build-tools;33.0.2"
+		yes | sdkmanager "build-tools;34.0.0"
 		yes | sdkmanager "emulator"
 		yes | sdkmanager "patcher;v4"
 		yes | sdkmanager "platform-tools"
 		yes | sdkmanager "platforms;android-33"
 		yes | sdkmanager "platforms;android-33-ext5"
-		yes | sdkmanager "sources;android-33"
-		yes | sdkmanager "system-images;android-33;google_apis;x86_64"
+		yes | sdkmanager "sources;android-34"
+		yes | sdkmanager "system-images;android-34;google_apis;x86_64"
 		yes | sdkmanager --licenses
 		yes | sdkmanager --update
 	fi
