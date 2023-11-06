@@ -109,11 +109,11 @@ update_appearance() {
 	gsettings set org.gnome.desktop.wm.preferences theme "Adwaita-dark"
 
 	# Change backgrounds
-	yay -S --needed --noconfirm gdm-tools
 	local address="https://raw.githubusercontent.com/sharpordie/andpaper/main/src/android-bottom-darker.png"
 	local picture="$HOME/Pictures/Backgrounds/$(basename "$address")"
 	mkdir -p "$(dirname $picture)" && curl -L "$address" -o "$picture"
-	set-gdm-theme -s default "$picture"
+	# yay -S --needed --noconfirm gdm-tools
+	# set-gdm-theme -s default "$picture"
 	gsettings set org.gnome.desktop.background picture-options "zoom"
 	gsettings set org.gnome.desktop.background picture-uri-dark "file://$picture"
 	gsettings set org.gnome.desktop.screensaver picture-options "zoom"
@@ -128,18 +128,18 @@ update_appearance() {
 	[[ $enabled == "false" ]] && gsettings set org.gnome.shell enabled-extensions "${factors%]*}, 'caffeine@patapon.info']"
 
 	# Enable just-perfection extension
-	yay -S --needed --noconfirm gnome-shell-extension-just-perfection-desktop
-	local factors=$(gsettings get org.gnome.shell enabled-extensions)
-	[[ $factors == "@as []" ]] && gsettings set org.gnome.shell enabled-extensions "['just-perfection-desktop@just-perfection']"
-	local factors=$(gsettings get org.gnome.shell enabled-extensions)
-	local enabled=$([[ $factors == *"'just-perfection-desktop@just-perfection'"* ]] && echo "true" || echo "false")
-	[[ $enabled == "false" ]] && gsettings set org.gnome.shell enabled-extensions "${factors%]*}, 'just-perfection-desktop@just-perfection']"
-	dconf write /org/gnome/shell/disable-user-extensions false
-	dconf reset -f /org/gnome/shell/extensions/just-perfection/app-menu
-	dconf write /org/gnome/shell/extensions/just-perfection/app-menu false
-	dconf write /org/gnome/shell/extensions/just-perfection/background-menu false
-	dconf write /org/gnome/shell/extensions/just-perfection/startup-status 0
-	dconf write /org/gnome/shell/extensions/just-perfection/window-demands-attention-focus true
+	# yay -S --needed --noconfirm gnome-shell-extension-just-perfection-desktop
+	# local factors=$(gsettings get org.gnome.shell enabled-extensions)
+	# [[ $factors == "@as []" ]] && gsettings set org.gnome.shell enabled-extensions "['just-perfection-desktop@just-perfection']"
+	# local factors=$(gsettings get org.gnome.shell enabled-extensions)
+	# local enabled=$([[ $factors == *"'just-perfection-desktop@just-perfection'"* ]] && echo "true" || echo "false")
+	# [[ $enabled == "false" ]] && gsettings set org.gnome.shell enabled-extensions "${factors%]*}, 'just-perfection-desktop@just-perfection']"
+	# dconf write /org/gnome/shell/disable-user-extensions false
+	# dconf reset -f /org/gnome/shell/extensions/just-perfection/app-menu
+	# dconf write /org/gnome/shell/extensions/just-perfection/app-menu false
+	# dconf write /org/gnome/shell/extensions/just-perfection/background-menu false
+	# dconf write /org/gnome/shell/extensions/just-perfection/startup-status 0
+	# dconf write /org/gnome/shell/extensions/just-perfection/window-demands-attention-focus true
 
 	# Change icon theme
 	sudo pacman -S --needed --noconfirm papirus-icon-theme
@@ -180,22 +180,22 @@ update_appearance() {
 	xdg-mime default org.gnome.Nautilus.desktop inode/directory
 
 	# Revert file-roller as archive manager
-	sudo pacman -S --needed --noconfirm file-roller p7zip unrar
-	xdg-mime default org.gnome.FileRoller.desktop \
-		application/x-7z-compressed application/x-7z-compressed-tar application/x-ace application/x-alz \
-		application/x-ar application/x-arj application/x-bzip application/x-bzip-compressed-tar \
-		application/x-bzip1 application/x-bzip1-compressed-tar application/x-cabinet application/x-cd-image \
-		application/x-compress application/x-compressed-tar application/x-cpio application/x-deb \
-		application/x-ear application/x-ms-dos-executable application/x-gtar application/x-gzip \
-		application/x-gzpostscript application/x-java-archive application/x-lha application/x-lhz \
-		application/x-lrzip application/x-lrzip-compressed-tar application/x-lz4 application/x-lzip \
-		application/x-lzip-compressed-tar application/x-lzma application/x-lzma-compressed-tar application/x-lzop \
-		application/x-lz4-compressed-tar application/x-lzop-compressed-tar application/x-ms-wim application/x-rar \
-		application/x-rar-compressed application/x-rpm application/x-source-rpm application/x-rzip \
-		application/x-rzip-compressed-tar application/x-tar application/x-tarz application/x-stuffit \
-		application/x-war application/x-xz application/x-xz-compressed-tar application/x-zip \
-		application/x-zip-compressed application/x-zoo application/zip application/x-archive \
-		application/vnd.ms-cab-compressed application/vnd.debian.binary-package application/gzip
+	# sudo pacman -S --needed --noconfirm file-roller p7zip unrar
+	# xdg-mime default org.gnome.FileRoller.desktop \
+	# 	application/x-7z-compressed application/x-7z-compressed-tar application/x-ace application/x-alz \
+	# 	application/x-ar application/x-arj application/x-bzip application/x-bzip-compressed-tar \
+	# 	application/x-bzip1 application/x-bzip1-compressed-tar application/x-cabinet application/x-cd-image \
+	# 	application/x-compress application/x-compressed-tar application/x-cpio application/x-deb \
+	# 	application/x-ear application/x-ms-dos-executable application/x-gtar application/x-gzip \
+	# 	application/x-gzpostscript application/x-java-archive application/x-lha application/x-lhz \
+	# 	application/x-lrzip application/x-lrzip-compressed-tar application/x-lz4 application/x-lzip \
+	# 	application/x-lzip-compressed-tar application/x-lzma application/x-lzma-compressed-tar application/x-lzop \
+	# 	application/x-lz4-compressed-tar application/x-lzop-compressed-tar application/x-ms-wim application/x-rar \
+	# 	application/x-rar-compressed application/x-rpm application/x-source-rpm application/x-rzip \
+	# 	application/x-rzip-compressed-tar application/x-tar application/x-tarz application/x-stuffit \
+	# 	application/x-war application/x-xz application/x-xz-compressed-tar application/x-zip \
+	# 	application/x-zip-compressed application/x-zoo application/zip application/x-archive \
+	# 	application/vnd.ms-cab-compressed application/vnd.debian.binary-package application/gzip
 
 }
 
@@ -238,7 +238,7 @@ update_chromium() {
 		sleep 1 && sudo ydotool type "chrome://settings/" && sleep 1 && sudo ydotool key 28:1 28:0
 		sleep 1 && sudo ydotool type "before downloading" && sleep 1 && sudo ydotool key 28:1 28:0
 		sleep 1 && for i in $(seq 1 3); do sleep 0.5 && sudo ydotool key 15:1 15:0; done && sleep 1 && sudo ydotool key 28:1 28:0
-		sleep 1 && sudo ydotool key 56:1 15:1 15:0 56:0 && sleep 1 && sudo ydotool key 56:1 15:1 15:0 56:0
+		# sleep 1 && sudo ydotool key 56:1 15:1 15:0 56:0 && sleep 1 && sudo ydotool key 56:1 15:1 15:0 56:0
 		sleep 1 && sudo ydotool key 29:1 38:1 38:0 29:0 && sleep 1 && sudo ydotool type "$deposit" && sleep 1 && sudo ydotool key 28:1 28:0
 		sleep 1 && sudo ydotool key 15:1 15:0 && sleep 1 && sudo ydotool key 28:1 28:0
 
@@ -253,9 +253,9 @@ update_chromium() {
 		sleep 1 && sudo ydotool key 29:1 38:1 38:0 29:0
 		sleep 1 && sudo ydotool type "chrome://flags/" && sleep 1 && sudo ydotool key 28:1 28:0
 		sleep 1 && sudo ydotool type "custom-ntp" && sleep 1 && sudo ydotool key 28:1 28:0
-		sleep 1 && for i in $(seq 1 5); do sleep 0.5 && sudo ydotool key 15:1 15:0; done
+		sleep 1 && for i in $(seq 1 6); do sleep 0.5 && sudo ydotool key 15:1 15:0; done
 		sleep 1 && sudo ydotool key 29:1 30:1 30:0 29:0 && sleep 1 && sudo ydotool type "$startup"
-		sleep 1 && for i in $(seq 1 2); do sleep 0.5 && sudo ydotool key 15:1 15:0; done && sleep 1 && sudo ydotool key 28:1 28:0
+		sleep 1 && sudo ydotool key 15:1 15:0 && sleep 1 && sudo ydotool key 28:1 28:0
 		sleep 1 && sudo ydotool key 108:1 108:0 && sleep 1 && sudo ydotool key 28:1 28:0
 
 		# Change disable-sharing-hub flag
@@ -915,16 +915,16 @@ main() {
 	local members=(
 		"update_appearance"
 		"update_system 'Europe/Brussels' 'archogen'"
-		"update_android_cmdline"
-		"update_android_studio"
+		#"update_android_cmdline"
+		#"update_android_studio"
 		"update_chromium"
 		"update_git 'main' 'sharpordie' '72373746+sharpordie@users.noreply.github.com'"
 		"update_vscode"
-		"update_flutter"
-		"update_hashcat"
+		#"update_flutter"
+		#"update_hashcat"
 		"update_kid3"
 		"update_losslesscut"
-		# "update_lutris"
+		#"update_lutris"
 		"update_jdownloader"
 		"update_keepassxc"
 		"update_mambaforge"
@@ -935,14 +935,14 @@ main() {
 		"update_obs_studio"
 		"update_pycharm_professional"
 		"update_python"
-		"update_quickemu"
+		#"update_quickemu"
 		"update_scrcpy"
 		"update_tinymediamanager"
 		"update_transmission"
 		"update_vmware_workstation"
-		# "update_waydroid"
+		#"update_waydroid"
 		"update_wireshark"
-		# "update_woeusb_ng"
+		#"update_woeusb_ng"
 		"update_yt_dlp"
 	)
 
